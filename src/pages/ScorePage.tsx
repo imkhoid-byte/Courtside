@@ -30,38 +30,58 @@ function getSR(): SpeechRecognitionCtor | null {
 
 type VoiceCallback = (cmd: string) => void
 
-function useVoiceCommands(onCommand: VoiceCallback) {
+function useVoiceCommands(onCommand: VoiceCallback, lang = 'en-US') {
   const [isListening, setIsListening] = useState(false)
   const [supported, setSupported] = useState(false)
   const recognitionRef = useRef<SpeechRecognitionShim | null>(null)
   const wakeLockRef = useRef<WakeLockSentinel | null>(null)
+  // Use a ref so onresult always calls the latest callback without stale closures
+  const onCommandRef = useRef(onCommand)
+  const shouldRestartRef = useRef(false)
+  useEffect(() => { onCommandRef.current = onCommand }, [onCommand])
 
   useEffect(() => {
     setSupported(!!getSR())
   }, [])
 
-  const start = useCallback(() => {
+  const startRecognition = useCallback(() => {
     const SR = getSR()
     if (!SR) return
     const r = new SR()
     r.continuous = true
     r.interimResults = false
-    r.lang = 'es-ES'
+    r.lang = lang
     r.onresult = (e) => {
       const transcript = e.results[e.results.length - 1][0].transcript.toLowerCase().trim()
-      onCommand(transcript)
+      onCommandRef.current(transcript)
     }
-    r.onerror = () => { setIsListening(false) }
-    r.onend = () => { setIsListening(false) }
+    r.onerror = () => {
+      shouldRestartRef.current = false
+      setIsListening(false)
+    }
+    r.onend = () => {
+      // Auto-restart if we're still supposed to be listening
+      if (shouldRestartRef.current) {
+        try { r.start() } catch { /* already started */ }
+      } else {
+        setIsListening(false)
+      }
+    }
     recognitionRef.current = r
-    r.start()
+    try { r.start() } catch { return }
     setIsListening(true)
     if ('wakeLock' in navigator) {
       navigator.wakeLock.request('screen').then(wl => { wakeLockRef.current = wl }).catch(() => {})
     }
-  }, [onCommand])
+  }, [lang])
+
+  const start = useCallback(() => {
+    shouldRestartRef.current = true
+    startRecognition()
+  }, [startRecognition])
 
   const stop = useCallback(() => {
+    shouldRestartRef.current = false
     recognitionRef.current?.stop()
     recognitionRef.current = null
     wakeLockRef.current?.release().catch(() => {})
@@ -434,7 +454,7 @@ function PlayerSelector({
 export function ScorePage() {
   const { state, history, addPoint, undo, endMatch, addRally, currentMatch, clearMatch } = useScore()
   const { showToast, setNewMatchOpen } = useApp()
-  const { t } = useI18n()
+  const { t, language } = useI18n()
   const navigate = useNavigate()
   const [flashingBtn, setFlashingBtn] = useState<number | null>(null)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
@@ -485,7 +505,7 @@ export function ScorePage() {
     }
   }, [state, addPoint, undo, addRally, showToast])
 
-  const { isListening, supported: voiceSupported, toggle: toggleVoice } = useVoiceCommands(handleVoiceCommand)
+  const { isListening, supported: voiceSupported, toggle: toggleVoice } = useVoiceCommands(handleVoiceCommand, language === 'es' ? 'es-ES' : 'en-US')
 
   useEffect(() => {
     if (state?.status === 'complete' && prevStatusRef.current === 'playing') {
