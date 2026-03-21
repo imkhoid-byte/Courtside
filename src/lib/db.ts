@@ -217,7 +217,7 @@ export async function updatePlayerRating(rating: PlayerRating): Promise<void> {
 export async function getAllPlayerRatings(): Promise<PlayerRating[]> {
   const db = await getDB()
   const all = await db.getAll('ratings')
-  return all.sort((a, b) => b.elo - a.elo)
+  return all.map(r => ({ ...r, history: r.history ?? [] })).sort((a, b) => b.elo - a.elo)
 }
 
 // ─── Practice operations ──────────────────────────────────────────────────────
