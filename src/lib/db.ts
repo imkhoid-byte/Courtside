@@ -2,10 +2,10 @@ import { openDB } from 'idb'
 import type { IDBPDatabase } from 'idb'
 import type { Match } from './types'
 
-const DB_NAME = 'courtside'
+const DB_NAME = 'sidecourt'
 const DB_VERSION = 1
 
-export interface CourtSideDB {
+export interface SideCourtDB {
   matches: {
     key: string
     value: Match
@@ -15,26 +15,32 @@ export interface CourtSideDB {
     key: string
     value: string
   }
+  // Recent player names for autocomplete
+  players: {
+    key: string
+    value: { name: string; lastUsed: number }
+  }
 }
 
-let dbPromise: Promise<IDBPDatabase<CourtSideDB>> | null = null
+let dbPromise: Promise<IDBPDatabase<SideCourtDB>> | null = null
 
 function getDB() {
   if (!dbPromise) {
-    dbPromise = openDB<CourtSideDB>(DB_NAME, DB_VERSION, {
+    dbPromise = openDB<SideCourtDB>(DB_NAME, DB_VERSION, {
       upgrade(db) {
         const matchStore = db.createObjectStore('matches', { keyPath: 'id' })
         matchStore.createIndex('by-status', 'status')
         matchStore.createIndex('by-startTime', 'startTime')
-
         db.createObjectStore('prefs')
+        db.createObjectStore('players', { keyPath: 'name' })
       },
     })
   }
   return dbPromise
 }
 
-// Match operations
+// ─── Match operations ────────────────────────────────────────────────────────
+
 export async function saveMatch(match: Match): Promise<void> {
   const db = await getDB()
   await db.put('matches', match)
@@ -53,9 +59,9 @@ export async function getAllMatches(): Promise<Match[]> {
 
 export async function getLiveMatch(): Promise<Match | undefined> {
   const db = await getDB()
-  const index = db.transaction('matches').store.index('by-status')
-  const live = await index.get('live')
-  return live
+  const tx = db.transaction('matches', 'readonly')
+  const index = tx.store.index('by-status')
+  return index.get('live')
 }
 
 export async function getCompletedMatches(): Promise<Match[]> {
@@ -66,12 +72,15 @@ export async function getCompletedMatches(): Promise<Match[]> {
     .sort((a, b) => b.startTime.localeCompare(a.startTime))
 }
 
-export async function deleteAllMatches(): Promise<void> {
+export async function clearAllData(): Promise<void> {
   const db = await getDB()
   await db.clear('matches')
+  await db.clear('prefs')
+  await db.clear('players')
 }
 
-// Prefs operations
+// ─── Prefs operations ────────────────────────────────────────────────────────
+
 export async function getPref(key: string): Promise<string | undefined> {
   const db = await getDB()
   return db.get('prefs', key)
@@ -82,8 +91,19 @@ export async function setPref(key: string, value: string): Promise<void> {
   await db.put('prefs', value, key)
 }
 
-export async function clearAllData(): Promise<void> {
+// ─── Player name history (for autocomplete) ──────────────────────────────────
+
+export async function recordPlayerName(name: string): Promise<void> {
+  if (!name.trim()) return
   const db = await getDB()
-  await db.clear('matches')
-  await db.clear('prefs')
+  await db.put('players', { name: name.trim(), lastUsed: Date.now() })
+}
+
+export async function getRecentPlayerNames(): Promise<string[]> {
+  const db = await getDB()
+  const all = await db.getAll('players')
+  return all
+    .sort((a, b) => b.lastUsed - a.lastUsed)
+    .map(p => p.name)
+    .slice(0, 20)
 }

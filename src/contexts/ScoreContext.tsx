@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react'
-import type { TennisState, Player, RallyEvent, MatchStats, Match } from '../lib/types'
-import { scorePoint } from '../lib/tennis'
+import type { PadelState, Match, RallyEvent, TeamPlayer, TeamId } from '../lib/types'
+import { scorePoint } from '../lib/padel'
 import { useApp } from './AppContext'
 import { saveMatch } from '../lib/db'
 import { nanoid } from 'nanoid'
@@ -8,27 +8,27 @@ import { nanoid } from 'nanoid'
 const MAX_HISTORY = 50
 
 interface ScoreContextValue {
-  state: TennisState | null
-  history: TennisState[]
-  startMatch: (match: Match, state: TennisState) => void
-  addPoint: (player: Player) => void
+  state: PadelState | null
+  history: PadelState[]
+  startMatch: (match: Match, state: PadelState) => void
+  addPoint: (team: TeamPlayer) => void
   undo: () => void
   addRally: (event: Omit<RallyEvent, 'id' | 'setIndex' | 'timestamp'>) => void
   currentMatch: Match | null
-  endMatch: (winner?: 1 | 2) => void
+  endMatch: (winner?: TeamId) => void
   clearMatch: () => void
 }
 
 const ScoreContext = createContext<ScoreContextValue | null>(null)
 
 export function ScoreProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<TennisState | null>(null)
-  const [history, setHistory] = useState<TennisState[]>([])
+  const [state, setState] = useState<PadelState | null>(null)
+  const [history, setHistory] = useState<PadelState[]>([])
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null)
   const { setLiveMatch } = useApp()
   const matchRef = useRef<Match | null>(null)
 
-  const startMatch = useCallback((match: Match, initial: TennisState) => {
+  const startMatch = useCallback((match: Match, initial: PadelState) => {
     setState(initial)
     setHistory([])
     setCurrentMatch(match)
@@ -36,20 +36,17 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
     setLiveMatch(match)
   }, [setLiveMatch])
 
-  const addPoint = useCallback((player: Player) => {
+  const addPoint = useCallback((team: TeamPlayer) => {
     if (!state || !matchRef.current) return
-
     if (navigator.vibrate) navigator.vibrate(6)
-
     setHistory(prev => [...prev, state].slice(-MAX_HISTORY))
 
-    const newState = scorePoint(state, player)
+    const newState = scorePoint(state, team)
     setState(newState)
 
     const match = matchRef.current
 
     if (newState.status === 'complete') {
-      // Auto-finalize match in DB
       const completedMatch: Match = {
         ...match,
         sets: [...newState.sets],
@@ -62,18 +59,17 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
       saveMatch(completedMatch)
       setLiveMatch(null)
     } else {
-      const updatedMatch: Match = { ...match, sets: [...newState.sets] }
-      matchRef.current = updatedMatch
-      setCurrentMatch(updatedMatch)
-      setLiveMatch(updatedMatch)
+      const updated: Match = { ...match, sets: [...newState.sets] }
+      matchRef.current = updated
+      setCurrentMatch(updated)
+      setLiveMatch(updated)
     }
   }, [state, setLiveMatch])
 
   const undo = useCallback(() => {
     if (history.length === 0) return
-    const prev = history[history.length - 1]
+    setState(history[history.length - 1])
     setHistory(h => h.slice(0, -1))
-    setState(prev)
   }, [history])
 
   const addRally = useCallback((event: Omit<RallyEvent, 'id' | 'setIndex' | 'timestamp'>) => {
@@ -85,41 +81,47 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
       timestamp: Date.now(),
     }
     const match = matchRef.current
-    const playerIdx = event.player - 1
-    const stats: [MatchStats, MatchStats] = [
-      { ...match.stats[0] },
-      { ...match.stats[1] },
-    ]
-    if (event.type === 'ace') stats[playerIdx].aces++
-    if (event.type === 'double_fault') stats[playerIdx].doubleFaults++
-    if (event.type === 'winner') stats[playerIdx].winners++
-    if (event.type === 'unforced_error') stats[playerIdx].unforcedErrors++
+    const statsA = { ...match.stats.A }
+    const statsB = { ...match.stats.B }
+    const target = event.team === 'A' ? statsA : statsB
 
-    const updatedMatch: Match = { ...match, rallies: [...match.rallies, rally], stats }
-    matchRef.current = updatedMatch
-    setCurrentMatch(updatedMatch)
-    saveMatch(updatedMatch)
+    if (event.type === 'ace') target.aces++
+    if (event.type === 'double_fault') target.doubleFaults++
+    if (event.type === 'winner') target.winners++
+    if (event.type === 'unforced_error') target.unforcedErrors++
+    if (event.shot === 'smash') target.smashes++
+    if (event.shot === 'lob') target.lobs++
+    if (event.shot === 'wall_shot') target.wallShots++
+    if (event.shot === 'bajada') target.bajadas++
+    if (event.shot === 'vibora') target.viboras++
+
+    const updated: Match = {
+      ...match,
+      rallies: [...match.rallies, rally],
+      stats: { A: statsA, B: statsB },
+    }
+    matchRef.current = updated
+    setCurrentMatch(updated)
+    saveMatch(updated)
   }, [state])
 
-  // Manual end (user clicks "End Match")
-  const endMatch = useCallback((forcedWinner?: 1 | 2) => {
+  const endMatch = useCallback((forcedWinner?: TeamId) => {
     if (!matchRef.current) return
-    const winner = forcedWinner ?? state?.winner ?? 1
-    const endedMatch: Match = {
+    const winner = forcedWinner ?? state?.winner ?? 'A'
+    const ended: Match = {
       ...matchRef.current,
       winner,
       status: 'complete',
       endTime: new Date().toISOString(),
     }
-    matchRef.current = endedMatch
-    setCurrentMatch(endedMatch)
-    saveMatch(endedMatch)
+    matchRef.current = ended
+    setCurrentMatch(ended)
+    saveMatch(ended)
     setLiveMatch(null)
     setState(null)
     setHistory([])
   }, [state, setLiveMatch])
 
-  // Clear state after viewing complete overlay
   const clearMatch = useCallback(() => {
     setState(null)
     setHistory([])

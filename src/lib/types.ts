@@ -1,12 +1,33 @@
-export type Surface = 'Hard' | 'Clay' | 'Grass' | 'Indoor'
-export type MatchFormat = 1 | 3 | 5
+export type PadelSurface = 'Indoor' | 'Outdoor' | 'Covered'
 export type MatchStatus = 'live' | 'complete' | 'abandoned'
+export type ScoringMode = 'advantage' | 'golden_point'
+export type CourtSide = 'left' | 'right'
+export type TeamId = 'A' | 'B'
+
+export interface Team {
+  player1: string
+  player2: string
+  side1: CourtSide
+  side2: CourtSide
+}
 
 export interface RallyEvent {
   id: string
-  type: 'ace' | 'double_fault' | 'winner' | 'unforced_error'
-  shot: 'forehand' | 'backhand' | 'serve' | 'volley' | 'overhead' | 'drop_shot'
-  player: 1 | 2
+  type: 'ace' | 'double_fault' | 'winner' | 'unforced_error' | 'forced_error'
+  shot:
+    | 'forehand'
+    | 'backhand'
+    | 'serve'
+    | 'volley'
+    | 'smash'
+    | 'lob'
+    | 'bajada'
+    | 'vibora'
+    | 'bandeja'
+    | 'wall_shot'
+    | 'chiquita'
+  player: string   // player name
+  team: TeamId
   setIndex: number
   timestamp: number
 }
@@ -16,54 +37,68 @@ export interface MatchStats {
   doubleFaults: number
   winners: number
   unforcedErrors: number
+  smashes: number
+  lobs: number
+  wallShots: number
+  bajadas: number
+  viboras: number
 }
+
+function emptyStats(): MatchStats {
+  return { aces: 0, doubleFaults: 0, winners: 0, unforcedErrors: 0, smashes: 0, lobs: 0, wallShots: 0, bajadas: 0, viboras: 0 }
+}
+
+export { emptyStats }
 
 export interface Match {
   id: string
-  p1: string
-  p2: string
-  format: MatchFormat
-  surface: Surface
+  teamA: Team
+  teamB: Team
+  surface: PadelSurface
+  scoringMode: ScoringMode
+  venue?: string
   sets: [number, number][]
-  winner: 1 | 2 | null
-  stats: [MatchStats, MatchStats]
+  winner: TeamId | null
+  server: 1 | 2 | 3 | 4       // index into serverOrder
+  serverOrder: [string, string, string, string]
+  stats: { A: MatchStats; B: MatchStats }
   rallies: RallyEvent[]
   startTime: string
   endTime?: string
   status: MatchStatus
 }
 
-// Tennis game state
-export type TennisPoints = 0 | 15 | 30 | 40
-export type Player = 1 | 2
+// Padel game state (scoring engine)
+export type TeamPlayer = 'A' | 'B'   // A = team A, B = team B
 
 export interface GameScore {
-  p1: number // raw points (0,1,2,3,4+)
-  p2: number
+  a: number   // raw points team A
+  b: number   // raw points team B
   isTiebreak: boolean
 }
 
-export interface TennisState {
-  // Match info
-  p1: string
-  p2: string
-  format: MatchFormat
-  surface: Surface
+export interface PadelState {
+  teamA: Team
+  teamB: Team
+  surface: PadelSurface
+  scoringMode: ScoringMode
+  venue?: string
 
-  // Score
-  sets: [number, number][]        // completed set scores
-  currentSet: [number, number]    // current set games
+  sets: [number, number][]
+  currentSet: [number, number]
   gameScore: GameScore
 
-  // Server
-  server: Player                  // current server
-  firstServer: Player             // who served first in match
-  setFirstServer: Player          // who serves first in current set
+  // Serve rotation: 4 players cycle in fixed order
+  serverOrder: [string, string, string, string]
+  serverIndex: number       // 0-3 into serverOrder
+  setFirstServerIndex: number
 
-  // Status
   status: 'playing' | 'complete'
-  winner: Player | null
-
-  // Match ID (for linking to DB)
+  winner: TeamId | null
   matchId: string
+}
+
+// Helper to get all 4 player names in order (A1, B1, A2, B2 per padel convention)
+export function getDefaultServerOrder(teamA: Team, teamB: Team): [string, string, string, string] {
+  return [teamA.player1, teamB.player1, teamA.player2, teamB.player2]
 }

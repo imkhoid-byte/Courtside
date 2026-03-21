@@ -13,8 +13,8 @@ interface AppContextValue {
   refreshLiveMatch: () => Promise<void>
   toasts: Toast[]
   showToast: (message: string) => void
-  playerName: string
-  setPlayerName: (name: string) => void
+  myName: string
+  setMyName: (name: string) => void
   newMatchOpen: boolean
   setNewMatchOpen: (open: boolean) => void
 }
@@ -24,13 +24,13 @@ const AppContext = createContext<AppContextValue | null>(null)
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [liveMatch, setLiveMatchState] = useState<Match | null>(null)
   const [toasts, setToasts] = useState<Toast[]>([])
-  const [playerName, setPlayerNameState] = useState<string>('')
+  const [myName, setMyNameState] = useState<string>('')
   const [newMatchOpen, setNewMatchOpen] = useState(false)
   const toastTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
   useEffect(() => {
     getLiveMatch().then(m => setLiveMatchState(m ?? null))
-    getPref('playerName').then(n => { if (n) setPlayerNameState(n) })
+    getPref('myName').then(n => { if (n) setMyNameState(n) })
   }, [])
 
   const refreshLiveMatch = useCallback(async () => {
@@ -43,17 +43,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (m) saveMatch(m)
   }, [])
 
-  const setPlayerName = useCallback((name: string) => {
-    setPlayerNameState(name)
+  const setMyName = useCallback((name: string) => {
+    setMyNameState(name)
   }, [])
 
   const showToast = useCallback((message: string) => {
-    const id = Date.now().toString()
+    const id = Date.now().toString() + Math.random()
     setToasts(prev => [...prev.slice(-2), { id, message }])
     const timer = setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id))
       toastTimers.current.delete(id)
-    }, 1800)
+    }, 1900)
     toastTimers.current.set(id, timer)
   }, [])
 
@@ -61,7 +61,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     <AppContext.Provider value={{
       liveMatch, setLiveMatch, refreshLiveMatch,
       toasts, showToast,
-      playerName, setPlayerName,
+      myName, setMyName,
       newMatchOpen, setNewMatchOpen,
     }}>
       {children}

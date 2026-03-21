@@ -12,8 +12,6 @@ const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: 
 const PieChart = lazy(() => import('recharts').then(m => ({ default: m.PieChart })))
 const Pie = lazy(() => import('recharts').then(m => ({ default: m.Pie })))
 const Cell = lazy(() => import('recharts').then(m => ({ default: m.Cell })))
-const LineChart = lazy(() => import('recharts').then(m => ({ default: m.LineChart })))
-const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })))
 const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })))
 
 const DARK_CHART_STYLE = {
@@ -29,41 +27,49 @@ function ChartSkeleton({ height = 180 }: { height?: number }) {
 }
 
 function OverviewTab({ matches, myName }: { matches: Match[]; myName: string }) {
+  const myMatches = matches.filter(m =>
+    m.teamA.player1 === myName || m.teamA.player2 === myName ||
+    m.teamB.player1 === myName || m.teamB.player2 === myName
+  )
+
+  const getTeam = (m: Match) =>
+    (m.teamA.player1 === myName || m.teamA.player2 === myName) ? 'A' : 'B'
+
   const winLossData = (() => {
     const byMonth: Record<string, { wins: number; losses: number }> = {}
-    matches.forEach(m => {
+    myMatches.forEach(m => {
       const key = new Date(m.startTime).toLocaleDateString('en-US', { month: 'short' })
       if (!byMonth[key]) byMonth[key] = { wins: 0, losses: 0 }
-      const isP1 = m.p1 === myName
-      if (m.winner === (isP1 ? 1 : 2)) byMonth[key].wins++
+      const t = getTeam(m)
+      if (m.winner === t) byMonth[key].wins++
       else byMonth[key].losses++
     })
     return Object.entries(byMonth).map(([name, v]) => ({ name, ...v }))
   })()
 
-  const totalAces = matches.reduce((s, m) => s + m.stats[m.p1 === myName ? 0 : 1].aces, 0)
-  const totalWinners = matches.reduce((s, m) => s + m.stats[m.p1 === myName ? 0 : 1].winners, 0)
-  const totalUE = matches.reduce((s, m) => s + m.stats[m.p1 === myName ? 0 : 1].unforcedErrors, 0)
-  const totalDF = matches.reduce((s, m) => s + m.stats[m.p1 === myName ? 0 : 1].doubleFaults, 0)
+  const totalAces = myMatches.reduce((s, m) => s + m.stats[getTeam(m)].aces, 0)
+  const totalSmashes = myMatches.reduce((s, m) => s + m.stats[getTeam(m)].smashes, 0)
+  const totalUE = myMatches.reduce((s, m) => s + m.stats[getTeam(m)].unforcedErrors, 0)
+  const totalDF = myMatches.reduce((s, m) => s + m.stats[getTeam(m)].doubleFaults, 0)
 
   const pieData = [
     { name: 'Aces', value: totalAces, color: '#bef264' },
-    { name: 'Winners', value: totalWinners, color: '#38bdf8' },
+    { name: 'Smashes', value: totalSmashes, color: '#38bdf8' },
     { name: 'UE', value: totalUE, color: '#fb7185' },
     { name: 'DF', value: totalDF, color: '#fbbf24' },
   ].filter(d => d.value > 0)
 
   // Best surface
   const surfaceWins: Record<string, { w: number; t: number }> = {}
-  matches.forEach(m => {
+  myMatches.forEach(m => {
     if (!surfaceWins[m.surface]) surfaceWins[m.surface] = { w: 0, t: 0 }
     surfaceWins[m.surface].t++
-    const isP1 = m.p1 === myName
-    if (m.winner === (isP1 ? 1 : 2)) surfaceWins[m.surface].w++
+    if (m.winner === getTeam(m)) surfaceWins[m.surface].w++
   })
-  const bestSurface = Object.entries(surfaceWins).sort((a, b) => (b[1].w / b[1].t) - (a[1].w / a[1].t))[0]?.[0] || '—'
+  const bestSurface = Object.entries(surfaceWins)
+    .sort((a, b) => (b[1].w / b[1].t) - (a[1].w / a[1].t))[0]?.[0] || '—'
 
-  const avg = (n: number) => matches.length ? (n / matches.length).toFixed(1) : '0'
+  const avg = (n: number) => myMatches.length ? (n / myMatches.length).toFixed(1) : '0'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -118,7 +124,7 @@ function OverviewTab({ matches, myName }: { matches: Match[]; myName: string }) 
           { label: 'Avg Aces/Match', value: avg(totalAces), color: '#bef264' },
           { label: 'Avg UE/Match', value: avg(totalUE), color: '#fb7185' },
           { label: 'Best Surface', value: bestSurface, color: '#38bdf8' },
-          { label: 'Total Winners', value: String(totalWinners), color: '#34d399' },
+          { label: 'Total Smashes', value: String(totalSmashes), color: '#34d399' },
         ].map(s => (
           <div key={s.label} style={{ flex: '1 0 40%', background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, padding: 14 }}>
             <div style={{ fontSize: 10, color: '#636b84', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{s.label}</div>
@@ -130,9 +136,22 @@ function OverviewTab({ matches, myName }: { matches: Match[]; myName: string }) 
   )
 }
 
-function ShotAnalysisTab({ matches }: { matches: Match[] }) {
-  const allRallies = matches.flatMap(m => m.rallies)
-  if (allRallies.length === 0) {
+function ShotAnalysisTab({ matches, myName }: { matches: Match[]; myName: string }) {
+  const myMatches = matches.filter(m =>
+    m.teamA.player1 === myName || m.teamA.player2 === myName ||
+    m.teamB.player1 === myName || m.teamB.player2 === myName
+  )
+
+  const getTeam = (m: Match) =>
+    (m.teamA.player1 === myName || m.teamA.player2 === myName) ? 'A' : 'B'
+
+  // Only rallies involving my team
+  const myRallies = myMatches.flatMap(m => {
+    const t = getTeam(m)
+    return m.rallies.filter(r => r.team === t)
+  })
+
+  if (myRallies.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '40px 0', color: '#636b84' }}>
         <div style={{ fontSize: 32, marginBottom: 8 }}>🎾</div>
@@ -144,37 +163,31 @@ function ShotAnalysisTab({ matches }: { matches: Match[] }) {
 
   // Shot distribution
   const shotCounts: Record<string, number> = {}
-  allRallies.forEach(r => {
+  myRallies.forEach(r => {
     shotCounts[r.shot] = (shotCounts[r.shot] || 0) + 1
   })
   const shotData = Object.entries(shotCounts).map(([name, value]) => ({
-    name: name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    name: name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
     value,
   })).sort((a, b) => b.value - a.value)
 
-  // FH vs BH wins/errors
-  const comparison = [
-    {
-      name: 'Forehand',
-      winners: allRallies.filter(r => r.shot === 'forehand' && r.type === 'winner').length,
-      errors: allRallies.filter(r => r.shot === 'forehand' && r.type === 'unforced_error').length,
-    },
-    {
-      name: 'Backhand',
-      winners: allRallies.filter(r => r.shot === 'backhand' && r.type === 'winner').length,
-      errors: allRallies.filter(r => r.shot === 'backhand' && r.type === 'unforced_error').length,
-    },
-  ]
+  // Winners vs errors for padel power shots
+  const padel_shots = ['smash', 'bajada', 'vibora', 'bandeja', 'wall_shot', 'lob', 'chiquita']
+  const comparison = padel_shots.map(shot => ({
+    name: shot.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    winners: myRallies.filter(r => r.shot === shot && r.type === 'winner').length,
+    errors: myRallies.filter(r => r.shot === shot && r.type === 'unforced_error').length,
+  })).filter(d => d.winners + d.errors > 0)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Shot Distribution</div>
-        <Suspense fallback={<ChartSkeleton />}>
-          <ResponsiveContainer width="100%" height={160}>
+        <Suspense fallback={<ChartSkeleton height={200} />}>
+          <ResponsiveContainer width="100%" height={Math.max(160, shotData.length * 28)}>
             <BarChart data={shotData} layout="vertical" style={DARK_CHART_STYLE}>
               <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} width={80} />
+              <YAxis type="category" dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
               <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
               <Bar dataKey="value" fill="#bef264" radius={[0, 4, 4, 0]} name="Shots" />
             </BarChart>
@@ -182,35 +195,47 @@ function ShotAnalysisTab({ matches }: { matches: Match[] }) {
         </Suspense>
       </div>
 
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Winners vs Errors</div>
-        <Suspense fallback={<ChartSkeleton />}>
-          <ResponsiveContainer width="100%" height={140}>
-            <BarChart data={comparison} style={DARK_CHART_STYLE} barCategoryGap="30%">
-              <XAxis dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis hide />
-              <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
-              <Bar dataKey="winners" fill="#34d399" radius={[4, 4, 0, 0]} name="Winners" />
-              <Bar dataKey="errors" fill="#fb7185" radius={[4, 4, 0, 0]} name="Errors" />
-            </BarChart>
-          </ResponsiveContainer>
-        </Suspense>
-      </div>
+      {comparison.length > 0 && (
+        <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Winners vs Errors by Shot</div>
+          <Suspense fallback={<ChartSkeleton />}>
+            <ResponsiveContainer width="100%" height={Math.max(140, comparison.length * 32)}>
+              <BarChart data={comparison} layout="vertical" style={DARK_CHART_STYLE}>
+                <XAxis type="number" hide />
+                <YAxis type="category" dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
+                <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
+                <Bar dataKey="winners" fill="#34d399" radius={[0, 4, 4, 0]} name="Winners" />
+                <Bar dataKey="errors" fill="#fb7185" radius={[0, 4, 4, 0]} name="Errors" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Suspense>
+        </div>
+      )}
     </div>
   )
 }
 
 function HeadToHeadTab({ matches, myName }: { matches: Match[]; myName: string }) {
-  const opponents: Record<string, { wins: number; losses: number }> = {}
-  matches.forEach(m => {
-    const opp = m.p1 === myName ? m.p2 : m.p1
-    if (!opponents[opp]) opponents[opp] = { wins: 0, losses: 0 }
-    const isP1 = m.p1 === myName
-    if (m.winner === (isP1 ? 1 : 2)) opponents[opp].wins++
-    else opponents[opp].losses++
+  const myMatches = matches.filter(m =>
+    m.teamA.player1 === myName || m.teamA.player2 === myName ||
+    m.teamB.player1 === myName || m.teamB.player2 === myName
+  )
+
+  // Group by opponent PAIR
+  const oppPairs: Record<string, { wins: number; losses: number }> = {}
+  myMatches.forEach(m => {
+    const inA = m.teamA.player1 === myName || m.teamA.player2 === myName
+    const opp1 = inA ? m.teamB.player1 : m.teamA.player1
+    const opp2 = inA ? m.teamB.player2 : m.teamA.player2
+    // Sort names for consistent key regardless of player order
+    const pairKey = [opp1, opp2].sort().join(' & ')
+    if (!oppPairs[pairKey]) oppPairs[pairKey] = { wins: 0, losses: 0 }
+    const myTeam = inA ? 'A' : 'B'
+    if (m.winner === myTeam) oppPairs[pairKey].wins++
+    else oppPairs[pairKey].losses++
   })
 
-  const sorted = Object.entries(opponents).sort((a, b) => (b[1].wins + b[1].losses) - (a[1].wins + a[1].losses))
+  const sorted = Object.entries(oppPairs).sort((a, b) => (b[1].wins + b[1].losses) - (a[1].wins + a[1].losses))
 
   if (sorted.length === 0) {
     return (
@@ -223,25 +248,25 @@ function HeadToHeadTab({ matches, myName }: { matches: Match[]; myName: string }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {sorted.map(([opp, rec]) => {
+      {sorted.map(([pair, rec]) => {
         const total = rec.wins + rec.losses
         const winPct = Math.round((rec.wins / total) * 100)
         const favorable = winPct >= 50
         return (
-          <div key={opp} style={{
+          <div key={pair} style={{
             background: '#0f1117', border: '1px solid #252a38', borderRadius: 12,
             padding: '12px 14px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#e4e8f2' }}>{opp}</span>
-              <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 13, fontWeight: 600, color: favorable ? '#34d399' : '#fb7185' }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#e4e8f2', flex: 1, marginRight: 8 }}>{pair}</span>
+              <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 13, fontWeight: 600, color: favorable ? '#34d399' : '#fb7185', flexShrink: 0 }}>
                 {rec.wins}–{rec.losses}
               </span>
             </div>
             <div style={{ height: 4, background: '#252a38', borderRadius: 2 }}>
               <div style={{ height: '100%', width: `${winPct}%`, background: favorable ? '#34d399' : '#fb7185', borderRadius: 2 }} />
             </div>
-            <div style={{ fontSize: 11, color: '#636b84', marginTop: 4 }}>{winPct}% win rate · {total} matches</div>
+            <div style={{ fontSize: 11, color: '#636b84', marginTop: 4 }}>{winPct}% win rate · {total} match{total !== 1 ? 'es' : ''}</div>
           </div>
         )
       })}
@@ -249,71 +274,130 @@ function HeadToHeadTab({ matches, myName }: { matches: Match[]; myName: string }
   )
 }
 
-function TrendsTab({ matches, myName }: { matches: Match[]; myName: string }) {
-  if (matches.length < 2) {
+function PartnerChemistryTab({ matches, myName }: { matches: Match[]; myName: string }) {
+  const myMatches = matches.filter(m =>
+    m.teamA.player1 === myName || m.teamA.player2 === myName ||
+    m.teamB.player1 === myName || m.teamB.player2 === myName
+  )
+
+  if (myMatches.length < 1) {
     return (
       <div style={{ textAlign: 'center', padding: '40px 0', color: '#636b84' }}>
-        <div style={{ fontSize: 32, marginBottom: 8 }}>📈</div>
-        <div style={{ fontSize: 14 }}>Need 2+ matches for trends</div>
+        <div style={{ fontSize: 32, marginBottom: 8 }}>🤜🤛</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: '#949cb4', marginBottom: 4 }}>No Partner Data Yet</div>
+        <div style={{ fontSize: 13 }}>Play matches to see your partner chemistry</div>
       </div>
     )
   }
 
-  // Cumulative win rate
-  let wins = 0
-  const winRateData = matches.map((m, i) => {
-    const isP1 = m.p1 === myName
-    if (m.winner === (isP1 ? 1 : 2)) wins++
-    return {
-      match: i + 1,
-      winRate: Math.round((wins / (i + 1)) * 100),
-    }
+  // Collect partner stats
+  const partnerStats: Record<string, { wins: number; total: number }> = {}
+  myMatches.forEach(m => {
+    const inA = m.teamA.player1 === myName || m.teamA.player2 === myName
+    const partner = inA
+      ? (m.teamA.player1 === myName ? m.teamA.player2 : m.teamA.player1)
+      : (m.teamB.player1 === myName ? m.teamB.player2 : m.teamB.player1)
+    if (!partnerStats[partner]) partnerStats[partner] = { wins: 0, total: 0 }
+    partnerStats[partner].total++
+    const myTeam = inA ? 'A' : 'B'
+    if (m.winner === myTeam) partnerStats[partner].wins++
   })
 
-  // Aces per match over time
-  const acesData = matches.map((m, i) => {
-    const idx = m.p1 === myName ? 0 : 1
-    return { match: i + 1, aces: m.stats[idx].aces }
-  })
+  const sorted = Object.entries(partnerStats).sort((a, b) => b[1].total - a[1].total)
+
+  // Best partner = highest win rate with 3+ matches (or just most wins if none qualify)
+  const qualified = sorted.filter(([, s]) => s.total >= 3)
+  const bestPartner = qualified.length > 0
+    ? qualified.sort((a, b) => (b[1].wins / b[1].total) - (a[1].wins / a[1].total))[0]
+    : sorted.sort((a, b) => (b[1].wins / b[1].total) - (a[1].wins / a[1].total))[0]
+
+  const bestName = bestPartner?.[0]
+  const bestStats = bestPartner?.[1]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Win Rate Over Time</div>
-        <Suspense fallback={<ChartSkeleton />}>
-          <ResponsiveContainer width="100%" height={160}>
-            <LineChart data={winRateData} style={DARK_CHART_STYLE}>
-              <XAxis dataKey="match" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} label={{ value: 'Match #', position: 'insideBottom', fill: '#636b84', fontSize: 10 }} />
-              <YAxis domain={[0, 100]} tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
-              <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
-              <Line type="monotone" dataKey="winRate" stroke="#34d399" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </Suspense>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Best Duo card */}
+      {bestName && bestStats && (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(52,211,153,0.08), rgba(190,242,100,0.04))',
+          border: '1px solid rgba(52,211,153,0.3)',
+          borderRadius: 14, padding: 16,
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+            Best Duo
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #34d399, #bef264)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <span style={{ fontSize: 18, fontWeight: 800, color: '#08090d' }}>{bestName[0]?.toUpperCase()}</span>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#e4e8f2', marginBottom: 2 }}>{myName} & {bestName}</div>
+              <div style={{ fontSize: 12, color: '#636b84' }}>
+                {bestStats.wins}W – {bestStats.total - bestStats.wins}L · {Math.round((bestStats.wins / bestStats.total) * 100)}% win rate
+              </div>
+            </div>
+            <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 22, fontWeight: 800, color: '#34d399' }}>
+              {Math.round((bestStats.wins / bestStats.total) * 100)}%
+            </div>
+          </div>
+        </div>
+      )}
 
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Aces Per Match</div>
-        <Suspense fallback={<ChartSkeleton />}>
-          <ResponsiveContainer width="100%" height={140}>
-            <BarChart data={acesData} style={DARK_CHART_STYLE}>
-              <XAxis dataKey="match" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis hide />
-              <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
-              <Bar dataKey="aces" fill="#bef264" radius={[4, 4, 0, 0]} name="Aces" />
-            </BarChart>
-          </ResponsiveContainer>
-        </Suspense>
+      {/* Partner list */}
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+        All Partners
       </div>
+      {sorted.map(([partner, stats]) => {
+        const winPct = Math.round((stats.wins / stats.total) * 100)
+        const isBest = partner === bestName
+        return (
+          <div key={partner} style={{
+            background: isBest ? 'rgba(52,211,153,0.05)' : '#0f1117',
+            border: `1px solid ${isBest ? 'rgba(52,211,153,0.25)' : '#252a38'}`,
+            borderRadius: 12, padding: '12px 14px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                  width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                  background: isBest ? 'linear-gradient(135deg, #34d399, #bef264)' : '#252a38',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: isBest ? '#08090d' : '#636b84' }}>
+                    {partner[0]?.toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#e4e8f2' }}>{partner}</div>
+                  <div style={{ fontSize: 11, color: '#636b84' }}>{stats.total} match{stats.total !== 1 ? 'es' : ''}</div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 15, fontWeight: 700, color: isBest ? '#34d399' : (winPct >= 50 ? '#e4e8f2' : '#636b84') }}>
+                  {winPct}%
+                </div>
+                <div style={{ fontSize: 11, color: '#636b84' }}>{stats.wins}W–{stats.total - stats.wins}L</div>
+              </div>
+            </div>
+            <div style={{ height: 3, background: '#252a38', borderRadius: 2 }}>
+              <div style={{ height: '100%', width: `${winPct}%`, background: isBest ? '#34d399' : '#38bdf8', borderRadius: 2 }} />
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
 
-const TABS = ['Overview', 'Shot Analysis', 'Head to Head', 'Trends'] as const
+const TABS = ['Overview', 'Shot Analysis', 'Head to Head', 'Chemistry'] as const
 type Tab = typeof TABS[number]
 
 export function AnalyticsPage() {
-  const { playerName } = useApp()
+  const { myName } = useApp()
   const [activeTab, setActiveTab] = useState<Tab>('Overview')
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
@@ -322,7 +406,7 @@ export function AnalyticsPage() {
     getCompletedMatches().then(m => { setMatches(m); setLoading(false) })
   }, [])
 
-  const myName = playerName || 'You'
+  const me = myName || 'You'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -360,10 +444,10 @@ export function AnalyticsPage() {
           <div style={{ padding: 32, textAlign: 'center', color: '#636b84' }}>Loading…</div>
         ) : (
           <>
-            {activeTab === 'Overview' && <OverviewTab matches={matches} myName={myName} />}
-            {activeTab === 'Shot Analysis' && <ShotAnalysisTab matches={matches} />}
-            {activeTab === 'Head to Head' && <HeadToHeadTab matches={matches} myName={myName} />}
-            {activeTab === 'Trends' && <TrendsTab matches={matches} myName={myName} />}
+            {activeTab === 'Overview' && <OverviewTab matches={matches} myName={me} />}
+            {activeTab === 'Shot Analysis' && <ShotAnalysisTab matches={matches} myName={me} />}
+            {activeTab === 'Head to Head' && <HeadToHeadTab matches={matches} myName={me} />}
+            {activeTab === 'Chemistry' && <PartnerChemistryTab matches={matches} myName={me} />}
           </>
         )}
       </div>

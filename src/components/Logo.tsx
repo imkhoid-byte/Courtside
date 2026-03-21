@@ -1,26 +1,22 @@
 export function Logo() {
   return (
-    <div className="flex items-center gap-2">
-      {/* Icon: lime green rounded square with CS */}
-      <div
-        style={{
-          width: 32,
-          height: 32,
-          background: '#bef264',
-          borderRadius: 8,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {/* Icon: lime rounded square with SC */}
+      <div style={{
+        width: 32, height: 32,
+        background: '#bef264',
+        borderRadius: 8,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0,
+      }}>
         <span style={{ fontFamily: '"IBM Plex Mono"', fontWeight: 700, fontSize: 13, color: '#08090d', letterSpacing: '-0.5px' }}>
-          CS
+          SC
         </span>
       </div>
-      {/* Wordmark */}
+      {/* Wordmark: Side (white) + Court (lime) */}
       <span style={{ fontFamily: '"DM Sans"', fontWeight: 800, fontSize: 18, letterSpacing: '-0.3px' }}>
-        <span style={{ color: '#e4e8f2' }}>Court</span>
-        <span style={{ color: '#bef264' }}>Side</span>
+        <span style={{ color: '#e4e8f2' }}>Side</span>
+        <span style={{ color: '#bef264' }}>Court</span>
       </span>
       {/* Badge */}
       <span style={{
@@ -34,7 +30,7 @@ export function Logo() {
         letterSpacing: '0.08em',
         fontFamily: '"DM Sans"',
       }}>
-        TENNIS
+        PADEL
       </span>
     </div>
   )

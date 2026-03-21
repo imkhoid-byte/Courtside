@@ -11,9 +11,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
-        name: 'CourtSide Tennis',
-        short_name: 'CourtSide',
-        description: 'Premium tennis score tracking app',
+        name: 'SideCourt Padel',
+        short_name: 'SideCourt',
+        description: 'Your padel stats, every match',
         theme_color: '#08090d',
         background_color: '#08090d',
         display: 'standalone',
