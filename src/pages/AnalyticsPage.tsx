@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { getCompletedMatches } from '../lib/db'
-import type { Match } from '../lib/types'
+import { getCompletedMatches, getAllPlayerRatings } from '../lib/db'
+import type { Match, PlayerRating } from '../lib/types'
 import { useApp } from '../contexts/AppContext'
 
 // Lazy load recharts
@@ -393,7 +393,75 @@ function PartnerChemistryTab({ matches, myName }: { matches: Match[]; myName: st
   )
 }
 
-const TABS = ['Overview', 'Shot Analysis', 'Head to Head', 'Chemistry'] as const
+function RankingsTab() {
+  const [ratings, setRatings] = useState<PlayerRating[]>([])
+  const [loading, setLoading] = useState(true)
+  const LineChart = lazy(() => import('recharts').then(m => ({ default: m.LineChart })))
+  const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })))
+  const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })))
+  const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })))
+  const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })))
+  const ResponsiveContainerLazy = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })))
+
+  useEffect(() => {
+    getAllPlayerRatings().then(r => { setRatings(r); setLoading(false) })
+  }, [])
+
+  if (loading) return <div style={{ padding: 32, textAlign: 'center', color: '#636b84' }}>Loading…</div>
+
+  if (ratings.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 0', color: '#636b84' }}>
+        <div style={{ fontSize: 32, marginBottom: 8 }}>🏅</div>
+        <div style={{ fontSize: 14 }}>Play matches to build your rating</div>
+      </div>
+    )
+  }
+
+  const medals = ['🥇', '🥈', '🥉']
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ fontSize: 12, color: '#636b84', marginBottom: 4 }}>Player ELO ratings based on match history</div>
+      {ratings.map((r, i) => {
+        const winPct = r.matchCount > 0 ? Math.round((r.winCount / r.matchCount) * 100) : 0
+        return (
+          <div key={r.name} style={{
+            background: '#0f1117', border: `1px solid ${i === 0 ? 'rgba(251,191,36,0.3)' : '#252a38'}`,
+            borderRadius: 12, padding: '12px 14px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <span style={{ fontSize: i < 3 ? 20 : 13, width: 26, textAlign: 'center' }}>
+                {i < 3 ? medals[i] : `#${i + 1}`}
+              </span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#e4e8f2' }}>{r.name}</div>
+                <div style={{ fontSize: 11, color: '#636b84' }}>{r.matchCount}M · {winPct}% win rate</div>
+              </div>
+              <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 22, fontWeight: 800, color: i === 0 ? '#fbbf24' : '#bef264' }}>
+                {r.elo}
+              </div>
+            </div>
+            {r.history.length > 1 && (
+              <Suspense fallback={null}>
+                <ResponsiveContainerLazy width="100%" height={40}>
+                  <LineChart data={r.history.slice(-10)}>
+                    <XAxis dataKey="date" hide />
+                    <YAxis domain={['auto', 'auto']} hide />
+                    <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 6, color: '#e4e8f2', fontSize: 11 }} />
+                    <Line type="monotone" dataKey="elo" stroke="#bef264" strokeWidth={1.5} dot={false} />
+                  </LineChart>
+                </ResponsiveContainerLazy>
+              </Suspense>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+const TABS = ['Overview', 'Shot Analysis', 'Head to Head', 'Chemistry', 'Rankings'] as const
 type Tab = typeof TABS[number]
 
 export function AnalyticsPage() {
@@ -448,6 +516,7 @@ export function AnalyticsPage() {
             {activeTab === 'Shot Analysis' && <ShotAnalysisTab matches={matches} myName={me} />}
             {activeTab === 'Head to Head' && <HeadToHeadTab matches={matches} myName={me} />}
             {activeTab === 'Chemistry' && <PartnerChemistryTab matches={matches} myName={me} />}
+            {activeTab === 'Rankings' && <RankingsTab />}
           </>
         )}
       </div>

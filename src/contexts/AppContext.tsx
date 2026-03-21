@@ -7,6 +7,9 @@ export interface Toast {
   message: string
 }
 
+// FAB menu options
+export type FabOption = 'live' | 'log' | 'tournament' | null
+
 interface AppContextValue {
   liveMatch: Match | null
   setLiveMatch: (m: Match | null) => void
@@ -17,6 +20,10 @@ interface AppContextValue {
   setMyName: (name: string) => void
   newMatchOpen: boolean
   setNewMatchOpen: (open: boolean) => void
+  fabMenuOpen: boolean
+  setFabMenuOpen: (open: boolean) => void
+  fabOption: FabOption
+  setFabOption: (opt: FabOption) => void
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -26,6 +33,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
   const [myName, setMyNameState] = useState<string>('')
   const [newMatchOpen, setNewMatchOpen] = useState(false)
+  const [fabMenuOpen, setFabMenuOpen] = useState(false)
+  const [fabOption, setFabOption] = useState<FabOption>(null)
   const toastTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
   useEffect(() => {
@@ -63,6 +72,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       toasts, showToast,
       myName, setMyName,
       newMatchOpen, setNewMatchOpen,
+      fabMenuOpen, setFabMenuOpen,
+      fabOption, setFabOption,
     }}>
       {children}
     </AppContext.Provider>

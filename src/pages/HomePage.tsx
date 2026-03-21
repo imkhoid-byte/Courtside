@@ -1,11 +1,40 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../contexts/AppContext'
 import { useScore } from '../contexts/ScoreContext'
 import { getCompletedMatches } from '../lib/db'
 import type { Match } from '../lib/types'
+import { useI18n } from '../contexts/I18nContext'
 
-// ─── Live banner ─────────────────────────────────────────────────────────────
+// ─── Streak calculation ───────────────────────────────────────────────────────
+
+function calcStreak(matches: Match[], myName: string): { current: number; isWin: boolean; best: number } {
+  const sorted = [...matches].sort((a, b) => b.startTime.localeCompare(a.startTime))
+  let current = 0
+  let isWin = true
+  let best = 0
+  let streak = 0
+
+  for (const m of sorted) {
+    const inA = m.teamA.player1 === myName || m.teamA.player2 === myName
+    const won = m.winner === (inA ? 'A' : 'B')
+    if (current === 0) { isWin = won; streak = 1; current = 1 }
+    else if (won === isWin) { streak++; current = streak }
+    else break
+  }
+
+  // Best win streak
+  let runWins = 0
+  for (const m of sorted) {
+    const inA = m.teamA.player1 === myName || m.teamA.player2 === myName
+    if (m.winner === (inA ? 'A' : 'B')) { runWins++; best = Math.max(best, runWins) }
+    else runWins = 0
+  }
+
+  return { current, isWin, best }
+}
+
+// ─── Live banner ──────────────────────────────────────────────────────────────
 
 function LiveBanner() {
   const { liveMatch } = useApp()
@@ -38,7 +67,6 @@ function LiveBanner() {
             {state.teamB.player1} & {state.teamB.player2}
           </div>
         </div>
-
         <div style={{ display: 'flex', gap: 10 }}>
           {[...state.sets, state.currentSet].map((s, i) => {
             const isCur = i === state.sets.length
@@ -56,7 +84,7 @@ function LiveBanner() {
   )
 }
 
-// ─── Stat card ───────────────────────────────────────────────────────────────
+// ─── Stat card ────────────────────────────────────────────────────────────────
 
 function StatCard({ label, value, sub, color = '#bef264', progress }: {
   label: string; value: string; sub?: string; color?: string; progress?: number
@@ -113,16 +141,35 @@ function MatchCard({ match, myName }: { match: Match; myName: string }) {
   )
 }
 
-// ─── Home Page ───────────────────────────────────────────────────────────────
+// ─── Home Page ────────────────────────────────────────────────────────────────
 
 export function HomePage() {
   const { myName } = useApp()
+  const { t } = useI18n()
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const touchStartY = useRef(0)
 
-  useEffect(() => {
-    getCompletedMatches().then(m => { setMatches(m); setLoading(false) })
+  const load = useCallback(async () => {
+    const m = await getCompletedMatches()
+    setMatches(m)
+    setLoading(false)
   }, [])
+
+  useEffect(() => { load() }, [load])
+
+  // Pull-to-refresh
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartY.current = e.touches[0].clientY }
+  const handleTouchEnd = async (e: React.TouchEvent) => {
+    const dy = e.changedTouches[0].clientY - touchStartY.current
+    if (dy > 80 && !refreshing) {
+      setRefreshing(true)
+      await load()
+      setRefreshing(false)
+      if (navigator.vibrate) navigator.vibrate(10)
+    }
+  }
 
   const me = myName || 'You'
   const myMatches = matches.filter(m =>
@@ -136,42 +183,75 @@ export function HomePage() {
   const losses = myMatches.length - wins
   const winRate = myMatches.length ? Math.round((wins / myMatches.length) * 100) : 0
   const totalSmashes = myMatches.reduce((s, m) => {
-    const t = (m.teamA.player1 === me || m.teamA.player2 === me) ? 'A' : 'B'
-    return s + m.stats[t].smashes
+    const team = (m.teamA.player1 === me || m.teamA.player2 === me) ? 'A' : 'B'
+    return s + m.stats[team].smashes
   }, 0)
   const totalAces = myMatches.reduce((s, m) => {
-    const t = (m.teamA.player1 === me || m.teamA.player2 === me) ? 'A' : 'B'
-    return s + m.stats[t].aces
+    const team = (m.teamA.player1 === me || m.teamA.player2 === me) ? 'A' : 'B'
+    return s + m.stats[team].aces
   }, 0)
-
   const smPerMatch = myMatches.length ? (totalSmashes / myMatches.length).toFixed(1) : '0'
   const acesPerMatch = myMatches.length ? (totalAces / myMatches.length).toFixed(1) : '0'
 
+  const streak = myName ? calcStreak(myMatches, me) : null
+
   return (
-    <div style={{ padding: '16px 16px 80px' }}>
+    <div
+      style={{ padding: '16px 16px 80px' }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {refreshing && (
+        <div style={{ textAlign: 'center', marginBottom: 8, color: '#636b84', fontSize: 12 }}>
+          Refreshing…
+        </div>
+      )}
+
       <LiveBanner />
+
+      {/* Streak banner */}
+      {streak && streak.current >= 2 && (
+        <div style={{
+          background: streak.isWin
+            ? 'linear-gradient(135deg, rgba(52,211,153,0.12), rgba(190,242,100,0.05))'
+            : 'linear-gradient(135deg, rgba(251,113,133,0.1), rgba(251,113,133,0.03))',
+          border: `1px solid ${streak.isWin ? 'rgba(52,211,153,0.25)' : 'rgba(251,113,133,0.2)'}`,
+          borderRadius: 14, padding: '12px 16px', marginBottom: 16,
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span style={{ fontSize: 24 }}>{streak.isWin ? '🔥' : '💪'}</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: streak.isWin ? '#34d399' : '#fb7185' }}>
+              {streak.current} match {streak.isWin ? t('winStreak') : t('loseStreak')}
+            </div>
+            <div style={{ fontSize: 11, color: '#636b84' }}>
+              {t('bestStreak')}: {streak.best}W
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ marginBottom: 8 }}>
         <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Season Stats</div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-          <StatCard label="Win Rate" value={`${winRate}%`} color="#34d399" progress={winRate} />
-          <StatCard label="Matches" value={String(myMatches.length)} sub={`${wins}W – ${losses}L`} color="#e4e8f2" />
+          <StatCard label={t('winRate')} value={`${winRate}%`} color="#34d399" progress={winRate} />
+          <StatCard label={t('matches')} value={String(myMatches.length)} sub={`${wins}W – ${losses}L`} color="#e4e8f2" />
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <StatCard label="Aces" value={String(totalAces)} sub={`${acesPerMatch}/match`} color="#bef264" />
-          <StatCard label="Smashes" value={String(totalSmashes)} sub={`${smPerMatch}/match`} color="#38bdf8" />
+          <StatCard label={t('acesMatch')} value={String(totalAces)} sub={`${acesPerMatch}/match`} color="#bef264" />
+          <StatCard label={t('smashesMatch')} value={String(totalSmashes)} sub={`${smPerMatch}/match`} color="#38bdf8" />
         </div>
       </div>
 
       <div style={{ marginTop: 20 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Recent Matches</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>{t('recentMatches')}</div>
         {loading ? (
-          <div style={{ color: '#636b84', fontSize: 14, padding: 16, textAlign: 'center' }}>Loading…</div>
+          <div style={{ color: '#636b84', fontSize: 14, padding: 16, textAlign: 'center' }}>{t('loading')}</div>
         ) : myMatches.length === 0 ? (
           <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 32, textAlign: 'center' }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>🎾</div>
-            <div style={{ color: '#636b84', fontSize: 14 }}>No matches yet</div>
-            <div style={{ color: '#636b84', fontSize: 12, marginTop: 4 }}>Tap + to start your first padel match</div>
+            <div style={{ color: '#636b84', fontSize: 14 }}>{t('noMatches')}</div>
+            <div style={{ color: '#636b84', fontSize: 12, marginTop: 4 }}>{t('startFirst')}</div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

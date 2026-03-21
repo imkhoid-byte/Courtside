@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Logo } from './Logo'
 import { ToastContainer } from './Toast'
 import { useApp } from '../contexts/AppContext'
 import { NewMatchModal } from './NewMatchModal'
+import { useI18n } from '../contexts/I18nContext'
 
 interface AppShellProps {
   children: React.ReactNode
@@ -30,13 +31,11 @@ function StatsIcon({ active }: { active: boolean }) {
   )
 }
 
-function ScoreIcon({ active }: { active: boolean }) {
+function HistoryIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <rect x="2" y="6" width="20" height="12" rx="2" stroke={active ? '#bef264' : '#636b84'} strokeWidth="1.8"/>
-      <line x1="12" y1="6" x2="12" y2="18" stroke={active ? '#bef264' : '#636b84'} strokeWidth="1.5"/>
-      <text x="6" y="15" fontFamily="IBM Plex Mono" fontSize="7" fontWeight="700" fill={active ? '#bef264' : '#636b84'} textAnchor="middle">0</text>
-      <text x="18" y="15" fontFamily="IBM Plex Mono" fontSize="7" fontWeight="700" fill={active ? '#bef264' : '#636b84'} textAnchor="middle">0</text>
+      <circle cx="12" cy="12" r="9" stroke={active ? '#bef264' : '#636b84'} strokeWidth="1.8"/>
+      <path d="M12 7v5l3 3" stroke={active ? '#bef264' : '#636b84'} strokeWidth="1.8" strokeLinecap="round"/>
     </svg>
   )
 }
@@ -51,19 +50,88 @@ function ProfileIcon({ active }: { active: boolean }) {
 }
 
 const NAV_ITEMS = [
-  { path: '/', label: 'Home', icon: HomeIcon },
-  { path: '/stats', label: 'Stats', icon: StatsIcon },
-  { path: null, label: '', icon: null }, // FAB placeholder
-  { path: '/score', label: 'Score', icon: ScoreIcon },
-  { path: '/me', label: 'Me', icon: ProfileIcon },
-]
+  { path: '/', key: 'home', icon: HomeIcon },
+  { path: '/stats', key: 'stats', icon: StatsIcon },
+  { path: null, key: 'fab', icon: null },
+  { path: '/history', key: 'history', icon: HistoryIcon },
+  { path: '/me', key: 'profile', icon: ProfileIcon },
+] as const
+
+// ─── FAB Popup Menu ───────────────────────────────────────────────────────────
+
+function FabMenu({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate()
+  const { setNewMatchOpen } = useApp()
+  const { t } = useI18n()
+  const overlayRef = useRef<HTMLDivElement>(null)
+
+  const items = [
+    { emoji: '🏓', label: t('newLiveMatch'), action: () => { setNewMatchOpen(true); onClose() } },
+    { emoji: '📝', label: t('logMatch'), action: () => { navigate('/log'); onClose() } },
+    { emoji: '🏆', label: t('tournament'), action: () => { navigate('/tournament'); onClose() } },
+  ]
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (overlayRef.current === e.target) onClose()
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+
+  return (
+    <motion.div
+      ref={overlayRef}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        background: 'rgba(8,9,13,0.85)',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'flex-end',
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)',
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center', width: '100%', paddingLeft: 24, paddingRight: 24 }}>
+        {items.map((item, i) => (
+          <motion.button
+            key={item.label}
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.9 }}
+            transition={{ delay: (items.length - 1 - i) * 0.05, type: 'spring', stiffness: 300, damping: 28 }}
+            onClick={item.action}
+            style={{
+              width: '100%', padding: '14px 20px', borderRadius: 14,
+              background: '#0f1117', border: '1px solid #252a38',
+              display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer',
+            }}
+          >
+            <span style={{ fontSize: 22 }}>{item.emoji}</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: '#e4e8f2', fontFamily: '"DM Sans"' }}>{item.label}</span>
+          </motion.button>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
 
 export function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { setNewMatchOpen } = useApp()
+  const { fabMenuOpen, setFabMenuOpen } = useApp()
+  const { t } = useI18n()
 
   const isActive = (path: string | null) => path !== null && location.pathname === path
+
+  const navLabels: Record<string, () => string> = {
+    home: () => t('home'),
+    stats: () => t('stats'),
+    history: () => t('history'),
+    profile: () => t('profile'),
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#08090d' }}>
@@ -123,61 +191,51 @@ export function AppShell({ children }: AppShellProps) {
             return (
               <div key="fab" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 60 }}>
                 <button
-                  onClick={() => setNewMatchOpen(true)}
+                  onClick={() => { setFabMenuOpen(!fabMenuOpen); if (navigator.vibrate) navigator.vibrate(10) }}
                   style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: '50%',
-                    background: '#bef264',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    width: 52, height: 52, borderRadius: '50%',
+                    background: fabMenuOpen ? '#e4e8f2' : '#bef264',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                     boxShadow: '0 0 0 6px #0f1117, 0 4px 20px rgba(190,242,100,0.35)',
-                    position: 'absolute',
-                    bottom: 6,
-                    transform: 'translateX(-50%)',
-                    left: '50%',
+                    position: 'absolute', bottom: 6,
+                    transform: 'translateX(-50%)', left: '50%',
+                    transition: 'background 0.15s, transform 0.15s',
                   }}
-                  aria-label="New match"
+                  aria-label="Open menu"
                 >
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <motion.svg
+                    width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    animate={{ rotate: fabMenuOpen ? 45 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <path d="M12 5v14M5 12h14" stroke="#08090d" strokeWidth="2.5" strokeLinecap="round"/>
-                  </svg>
+                  </motion.svg>
                 </button>
               </div>
             )
           }
 
-          const Icon = item.icon!
+          const Icon = item.icon
           const active = isActive(item.path)
           return (
             <button
               key={item.path}
-              onClick={() => navigate(item.path!)}
+              onClick={() => { navigate(item.path); if (navigator.vibrate) navigator.vibrate(6) }}
               style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 3,
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '4px 0',
-                minHeight: 44,
-                minWidth: 44,
+                flex: 1, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', gap: 3,
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '4px 0', minHeight: 44, minWidth: 44,
               }}
             >
               <Icon active={active} />
               <span style={{
-                fontSize: 10,
-                fontWeight: 600,
+                fontSize: 10, fontWeight: 600,
                 color: active ? '#bef264' : '#636b84',
                 fontFamily: '"DM Sans"',
               }}>
-                {item.label}
+                {navLabels[item.key]?.() ?? item.key}
               </span>
             </button>
           )
@@ -189,6 +247,11 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* New Match Modal */}
       <NewMatchModal />
+
+      {/* FAB Menu overlay */}
+      <AnimatePresence>
+        {fabMenuOpen && <FabMenu onClose={() => setFabMenuOpen(false)} />}
+      </AnimatePresence>
     </div>
   )
 }

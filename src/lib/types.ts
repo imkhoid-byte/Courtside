@@ -3,6 +3,8 @@ export type MatchStatus = 'live' | 'complete' | 'abandoned'
 export type ScoringMode = 'advantage' | 'golden_point'
 export type CourtSide = 'left' | 'right'
 export type TeamId = 'A' | 'B'
+export type Language = 'en' | 'es'
+export type Weather = 'sunny' | 'cloudy' | 'rainy' | 'windy' | 'night'
 
 export interface Team {
   player1: string
@@ -26,7 +28,7 @@ export interface RallyEvent {
     | 'bandeja'
     | 'wall_shot'
     | 'chiquita'
-  player: string   // player name
+  player: string
   team: TeamId
   setIndex: number
   timestamp: number
@@ -59,21 +61,25 @@ export interface Match {
   venue?: string
   sets: [number, number][]
   winner: TeamId | null
-  server: 1 | 2 | 3 | 4       // index into serverOrder
+  server: 1 | 2 | 3 | 4
   serverOrder: [string, string, string, string]
   stats: { A: MatchStats; B: MatchStats }
   rallies: RallyEvent[]
   startTime: string
   endTime?: string
   status: MatchStatus
+  // Extended fields
+  notes?: string
+  duration?: number          // minutes
+  weather?: Weather
+  scorekeeperMode?: boolean
 }
 
-// Padel game state (scoring engine)
-export type TeamPlayer = 'A' | 'B'   // A = team A, B = team B
+export type TeamPlayer = 'A' | 'B'
 
 export interface GameScore {
-  a: number   // raw points team A
-  b: number   // raw points team B
+  a: number
+  b: number
   isTiebreak: boolean
 }
 
@@ -83,22 +89,79 @@ export interface PadelState {
   surface: PadelSurface
   scoringMode: ScoringMode
   venue?: string
-
   sets: [number, number][]
   currentSet: [number, number]
   gameScore: GameScore
-
-  // Serve rotation: 4 players cycle in fixed order
   serverOrder: [string, string, string, string]
-  serverIndex: number       // 0-3 into serverOrder
+  serverIndex: number
   setFirstServerIndex: number
-
   status: 'playing' | 'complete'
   winner: TeamId | null
   matchId: string
+  scorekeeperMode?: boolean
 }
 
-// Helper to get all 4 player names in order (A1, B1, A2, B2 per padel convention)
 export function getDefaultServerOrder(teamA: Team, teamB: Team): [string, string, string, string] {
   return [teamA.player1, teamB.player1, teamA.player2, teamB.player2]
+}
+
+// ─── Tournament ────────────────────────────────────────────────────────────────
+
+export type TournamentFormat = 'americano' | 'mexicano'
+
+export interface TournamentCourt {
+  courtNum: number
+  teamA: [string, string]
+  teamB: [string, string]
+  scoreA?: number
+  scoreB?: number
+  completed: boolean
+}
+
+export interface TournamentRound {
+  roundNum: number
+  courts: TournamentCourt[]
+  completed: boolean
+}
+
+export interface Tournament {
+  id: string
+  name: string
+  format: TournamentFormat
+  players: string[]
+  rounds: TournamentRound[]
+  scores: Record<string, number>
+  status: 'active' | 'complete'
+  createdAt: string
+  completedAt?: string
+  goldenPoint: boolean
+  surface: PadelSurface
+  venue?: string
+}
+
+// ─── Player Rating (ELO) ──────────────────────────────────────────────────────
+
+export interface EloEntry {
+  elo: number
+  date: string
+  matchId: string
+  change: number
+}
+
+export interface PlayerRating {
+  name: string
+  elo: number
+  matchCount: number
+  winCount: number
+  history: EloEntry[]
+}
+
+// ─── Practice ─────────────────────────────────────────────────────────────────
+
+export interface Practice {
+  id: string
+  duration: number          // minutes
+  shots: Partial<Record<RallyEvent['shot'], number>>
+  notes?: string
+  date: string              // ISO date
 }

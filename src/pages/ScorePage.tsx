@@ -2,9 +2,161 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useScore } from '../contexts/ScoreContext'
 import { useApp } from '../contexts/AppContext'
+import { useI18n } from '../contexts/I18nContext'
 import type { TeamPlayer, RallyEvent } from '../lib/types'
 import { displayPoints, getAdvantage, isDeuce, isGoldenPoint } from '../lib/padel'
 import { useNavigate } from 'react-router-dom'
+
+// ─── Voice Commands ───────────────────────────────────────────────────────────
+
+// Web Speech API type shims
+interface SpeechRecognitionShim extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start(): void
+  stop(): void
+  onresult: ((e: { results: { [k: number]: { [k: number]: { transcript: string } }; length: number } }) => void) | null
+  onerror: (() => void) | null
+  onend: (() => void) | null
+}
+type SpeechRecognitionCtor = new () => SpeechRecognitionShim
+
+function getSR(): SpeechRecognitionCtor | null {
+  type W = { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor }
+  const w = window as unknown as W
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null
+}
+
+type VoiceCallback = (cmd: string) => void
+
+function useVoiceCommands(onCommand: VoiceCallback) {
+  const [isListening, setIsListening] = useState(false)
+  const [supported, setSupported] = useState(false)
+  const recognitionRef = useRef<SpeechRecognitionShim | null>(null)
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null)
+
+  useEffect(() => {
+    setSupported(!!getSR())
+  }, [])
+
+  const start = useCallback(() => {
+    const SR = getSR()
+    if (!SR) return
+    const r = new SR()
+    r.continuous = true
+    r.interimResults = false
+    r.lang = 'es-ES'
+    r.onresult = (e) => {
+      const transcript = e.results[e.results.length - 1][0].transcript.toLowerCase().trim()
+      onCommand(transcript)
+    }
+    r.onerror = () => { setIsListening(false) }
+    r.onend = () => { setIsListening(false) }
+    recognitionRef.current = r
+    r.start()
+    setIsListening(true)
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').then(wl => { wakeLockRef.current = wl }).catch(() => {})
+    }
+  }, [onCommand])
+
+  const stop = useCallback(() => {
+    recognitionRef.current?.stop()
+    recognitionRef.current = null
+    wakeLockRef.current?.release().catch(() => {})
+    wakeLockRef.current = null
+    setIsListening(false)
+  }, [])
+
+  const toggle = useCallback(() => {
+    if (isListening) stop(); else start()
+  }, [isListening, start, stop])
+
+  useEffect(() => () => { stop() }, [stop])
+
+  return { isListening, supported, toggle }
+}
+
+// ─── Match Timer ──────────────────────────────────────────────────────────────
+
+function useMatchTimer(startTime?: string) {
+  const [elapsed, setElapsed] = useState(0)
+  useEffect(() => {
+    if (!startTime) return
+    const start = new Date(startTime).getTime()
+    const update = () => setElapsed(Math.floor((Date.now() - start) / 1000))
+    update()
+    const id = setInterval(update, 10000)
+    return () => clearInterval(id)
+  }, [startTime])
+  const mins = Math.floor(elapsed / 60)
+  const hrs = Math.floor(mins / 60)
+  return hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins}m`
+}
+
+// ─── Generate share image (canvas) ───────────────────────────────────────────
+
+function generateShareText(winPair: string, losePair: string, sets: [number, number][], stats: { aces: number; smashes: number; winners: number }, venue?: string): string {
+  return [
+    '🏆 SideCourt Match Result',
+    '━━━━━━━━━━━━━━━━━',
+    `${winPair}  🏆  def.  ${losePair}`,
+    sets.map(s => `${s[0]}-${s[1]}`).join('  '),
+    '━━━━━━━━━━━━━━━━━',
+    `🔥 Aces: ${stats.aces}  💣 Smashes: ${stats.smashes}  💥 Winners: ${stats.winners}`,
+    venue ? `📍 ${venue}` : '',
+    '━━━━━━━━━━━━━━━━━',
+    'sidecourt.app',
+  ].filter(Boolean).join('\n')
+}
+
+async function generateShareImage(text: string): Promise<Blob | null> {
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = 1080
+    canvas.height = 1920
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return null
+
+    // Background
+    ctx.fillStyle = '#08090d'
+    ctx.fillRect(0, 0, 1080, 1920)
+
+    // Lime accent bar
+    ctx.fillStyle = '#bef264'
+    ctx.fillRect(80, 200, 920, 8)
+
+    // Title
+    ctx.fillStyle = '#bef264'
+    ctx.font = 'bold 64px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('SideCourt', 540, 160)
+
+    // Content
+    ctx.fillStyle = '#e4e8f2'
+    ctx.font = '48px sans-serif'
+    const lines = text.split('\n')
+    lines.forEach((line, i) => {
+      if (line.includes('━')) {
+        ctx.fillStyle = '#252a38'
+        ctx.fillRect(80, 260 + i * 80 - 10, 920, 2)
+      } else {
+        ctx.fillStyle = line.startsWith('🏆') ? '#bef264' : '#e4e8f2'
+        ctx.fillText(line, 540, 300 + i * 80)
+      }
+    })
+
+    // Footer
+    ctx.fillStyle = '#636b84'
+    ctx.font = '36px sans-serif'
+    ctx.fillText('sidecourt.app', 540, 1820)
+
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
+  } catch {
+    return null
+  }
+}
 
 function createRipple(e: React.MouseEvent<HTMLElement>, color: string) {
   const rect = e.currentTarget.getBoundingClientRect()
@@ -153,19 +305,23 @@ function MatchCompleteOverlay({ onDone, onRematch }: { onDone: () => void; onRem
   const winPair = `${winTeam.player1} & ${winTeam.player2}`
   const losePair = `${loseTeam.player1} & ${loseTeam.player2}`
 
-  const shareText = [
-    '🏆 SideCourt Match Result',
-    `${winPair} def. ${losePair}`,
-    state.sets.map(s => `${s[0]}-${s[1]}`).join(', '),
-    `Aces: ${currentMatch.stats[state.winner].aces} | Smashes: ${currentMatch.stats[state.winner].smashes} | Winners: ${currentMatch.stats[state.winner].winners}`,
-    '#SideCourt #Padel',
-  ].join('\n')
+  const shareText = generateShareText(
+    winPair, losePair, state.sets,
+    currentMatch.stats[state.winner],
+    currentMatch.venue
+  )
+  const { showToast } = useApp()
 
-  const handleShare = () => {
+  const handleShare = async () => {
+    const blob = await generateShareImage(shareText)
     if (navigator.share) {
-      navigator.share({ text: shareText }).catch(() => {})
-    } else {
-      navigator.clipboard?.writeText(shareText)
+      const files = blob ? [new File([blob], 'sidecourt-result.png', { type: 'image/png' })] : []
+      const shareData: ShareData = { text: shareText, title: 'SideCourt Match Result' }
+      if (files.length && navigator.canShare?.({ files })) shareData.files = files
+      navigator.share(shareData).catch(() => navigator.clipboard?.writeText(shareText))
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(shareText)
+      showToast('Copied!')
     }
   }
 
@@ -278,13 +434,58 @@ function PlayerSelector({
 export function ScorePage() {
   const { state, history, addPoint, undo, endMatch, addRally, currentMatch, clearMatch } = useScore()
   const { showToast, setNewMatchOpen } = useApp()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [flashingBtn, setFlashingBtn] = useState<number | null>(null)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [showComplete, setShowComplete] = useState(false)
   const [pendingShot, setPendingShot] = useState<{ btn: ShotBtn; idx: number } | null>(null)
   const [selectedPlayer, setSelectedPlayer] = useState<string>('')
+  const [scorekeeperMode, setScorekeeperMode] = useState(state?.scorekeeperMode ?? false)
   const prevStatusRef = useRef<string | null>(null)
+
+  // Match timer
+  const elapsedStr = useMatchTimer(currentMatch?.startTime)
+
+  // Voice commands
+  const handleVoiceCommand = useCallback((transcript: string) => {
+    if (!state || state.status === 'complete') return
+    const cmd = transcript.toLowerCase()
+    // Score commands
+    if (/\b(point left|point us|nuestro|punto nuestro|punto izquierda)\b/.test(cmd)) {
+      addPoint('A'); showToast('✓ Point Team A')
+    } else if (/\b(point right|point them|suyo|punto suyo|punto derecha)\b/.test(cmd)) {
+      addPoint('B'); showToast('✓ Point Team B')
+    } else if (/\b(undo|back|deshacer|atrás)\b/.test(cmd)) {
+      undo(); showToast('↩ Undone')
+    } else if (/\b(ace|as)\b/.test(cmd)) {
+      addRally({ type: 'ace', shot: 'serve', player: state.serverOrder[state.serverIndex], team: state.serverOrder[state.serverIndex] === state.teamA.player1 || state.serverOrder[state.serverIndex] === state.teamA.player2 ? 'A' : 'B' })
+      showToast('🔥 Ace!')
+    } else if (/\b(double fault|doble falta)\b/.test(cmd)) {
+      addRally({ type: 'double_fault', shot: 'serve', player: state.serverOrder[state.serverIndex], team: 'A' })
+      showToast('❌ Double Fault')
+    } else if (/\b(smash|remate)\b/.test(cmd)) {
+      addRally({ type: 'winner', shot: 'smash', player: state.serverOrder[state.serverIndex], team: 'A' })
+      showToast('💣 Smash!')
+    } else if (/\b(bajada)\b/.test(cmd)) {
+      addRally({ type: 'winner', shot: 'bajada', player: state.serverOrder[state.serverIndex], team: 'A' })
+      showToast('🪃 Bajada!')
+    } else if (/\b(vibora|víbora)\b/.test(cmd)) {
+      addRally({ type: 'winner', shot: 'vibora', player: state.serverOrder[state.serverIndex], team: 'A' })
+      showToast('🌀 Vibora!')
+    } else if (/\b(lob|globo)\b/.test(cmd)) {
+      addRally({ type: 'winner', shot: 'lob', player: state.serverOrder[state.serverIndex], team: 'A' })
+      showToast('🪶 Lob!')
+    } else if (/\b(winner|ganador)\b/.test(cmd)) {
+      addRally({ type: 'winner', shot: 'forehand', player: state.serverOrder[state.serverIndex], team: 'A' })
+      showToast('💥 Winner!')
+    } else if (/\b(error|fallo)\b/.test(cmd)) {
+      addRally({ type: 'unforced_error', shot: 'forehand', player: state.serverOrder[state.serverIndex], team: 'A' })
+      showToast('😬 Error')
+    }
+  }, [state, addPoint, undo, addRally, showToast])
+
+  const { isListening, supported: voiceSupported, toggle: toggleVoice } = useVoiceCommands(handleVoiceCommand)
 
   useEffect(() => {
     if (state?.status === 'complete' && prevStatusRef.current === 'playing') {
@@ -364,8 +565,134 @@ export function ScorePage() {
     { name: state.teamB.player2, team: 'B' as TeamPlayer },
   ]
 
+  // Scorekeeper mode: full-height tap zones
+  if (scorekeeperMode) {
+    return (
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '8px 12px 80px' }}>
+        {/* Top bar: timer + controls */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 13, color: '#636b84' }}>⏱ {elapsedStr}</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setScorekeeperMode(false)}
+              style={{ padding: '6px 12px', borderRadius: 8, background: '#161922', border: '1px solid #252a38', color: '#636b84', fontSize: 12, cursor: 'pointer' }}>
+              Full UI
+            </button>
+            <button onClick={undo} disabled={history.length === 0}
+              style={{ width: 36, height: 36, borderRadius: '50%', background: '#161922', border: '1px solid #252a38', cursor: history.length ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: history.length ? 1 : 0.35 }}>
+              <span style={{ fontSize: 16, color: '#e4e8f2' }}>↩</span>
+            </button>
+            <button onClick={() => setShowEndConfirm(true)}
+              style={{ width: 36, height: 36, borderRadius: '50%', background: '#161922', border: '1px solid #252a38', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 16, color: '#fb7185' }}>✕</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Serve indicator */}
+        <div style={{ textAlign: 'center', fontSize: 11, color: '#636b84', marginBottom: 8 }}>
+          Serving: <span style={{ color: '#bef264', fontWeight: 700 }}>{serverName}</span>
+          {isGP && <span style={{ marginLeft: 8, background: '#fbbf24', color: '#08090d', padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 800 }}>GOLDEN</span>}
+        </div>
+
+        {/* Big tap zones */}
+        <div style={{ flex: 1, display: 'flex', gap: 10 }}>
+          <div
+            onClick={e => handlePoint('A', e as unknown as React.MouseEvent<HTMLDivElement>)}
+            style={{
+              flex: 1, borderRadius: 16, background: 'rgba(56,189,248,0.08)',
+              border: '2px solid rgba(56,189,248,0.2)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', userSelect: 'none', position: 'relative', overflow: 'hidden',
+            }}
+          >
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>TEAM A</div>
+            <div style={{ fontSize: 14, color: '#949cb4', marginBottom: 4 }}>{state.teamA.player1}</div>
+            <div style={{ fontSize: 12, color: '#636b84' }}>{state.teamA.player2}</div>
+            <div style={{ fontSize: 80, fontFamily: '"IBM Plex Mono"', fontWeight: 700, color: '#38bdf8', lineHeight: 1, margin: '12px 0' }}>
+              {state.gameScore.isTiebreak ? state.gameScore.a : displayPoints(state.gameScore.a, false)}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {[...state.sets.map(s => s[0]), state.currentSet[0]].map((g, i) => (
+                <span key={i} style={{ fontFamily: '"IBM Plex Mono"', fontSize: 22, color: i === state.sets.length ? '#38bdf8' : '#636b84', fontWeight: i === state.sets.length ? 700 : 400 }}>{g}</span>
+              ))}
+            </div>
+          </div>
+          <div
+            onClick={e => handlePoint('B', e as unknown as React.MouseEvent<HTMLDivElement>)}
+            style={{
+              flex: 1, borderRadius: 16, background: 'rgba(251,113,133,0.08)',
+              border: '2px solid rgba(251,113,133,0.2)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', userSelect: 'none', position: 'relative', overflow: 'hidden',
+            }}
+          >
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#fb7185', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>TEAM B</div>
+            <div style={{ fontSize: 14, color: '#949cb4', marginBottom: 4 }}>{state.teamB.player1}</div>
+            <div style={{ fontSize: 12, color: '#636b84' }}>{state.teamB.player2}</div>
+            <div style={{ fontSize: 80, fontFamily: '"IBM Plex Mono"', fontWeight: 700, color: '#fb7185', lineHeight: 1, margin: '12px 0' }}>
+              {state.gameScore.isTiebreak ? state.gameScore.b : displayPoints(state.gameScore.b, false)}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {[...state.sets.map(s => s[1]), state.currentSet[1]].map((g, i) => (
+                <span key={i} style={{ fontFamily: '"IBM Plex Mono"', fontSize: 22, color: i === state.sets.length ? '#fb7185' : '#636b84', fontWeight: i === state.sets.length ? 700 : 400 }}>{g}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* End confirm + Complete overlay */}
+        <AnimatePresence>
+          {showEndConfirm && (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setShowEndConfirm(false)}
+                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 150 }} />
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: '#0f1117', border: '1px solid #252a38', borderRadius: 16, padding: 24, zIndex: 151, width: '80%', maxWidth: 300 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#e4e8f2', marginBottom: 8 }}>End Match?</div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={() => setShowEndConfirm(false)} style={{ flex: 1, padding: '12px', background: '#161922', border: '1px solid #252a38', borderRadius: 10, cursor: 'pointer', color: '#949cb4', fontSize: 14, fontWeight: 600 }}>Cancel</button>
+                  <button onClick={handleEndMatch} style={{ flex: 1, padding: '12px', background: '#fb7185', border: 'none', borderRadius: 10, cursor: 'pointer', color: '#08090d', fontSize: 14, fontWeight: 800 }}>End</button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {showComplete && state.status === 'complete' && (
+            <MatchCompleteOverlay onDone={() => { setShowComplete(false); clearMatch(); navigate('/') }} onRematch={handleRematch} />
+          )}
+        </AnimatePresence>
+      </div>
+    )
+  }
+
   return (
     <div style={{ padding: '16px 16px 0', paddingBottom: 80 }}>
+
+      {/* Top bar: timer + mode toggle + mic */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 12, color: '#636b84', flex: 1 }}>⏱ {elapsedStr}</span>
+        {voiceSupported && (
+          <button
+            onClick={() => { toggleVoice(); if (navigator.vibrate) navigator.vibrate(10) }}
+            style={{
+              padding: '6px 10px', borderRadius: 8, border: 'none',
+              background: isListening ? '#dc2626' : '#161922',
+              color: isListening ? '#fff' : '#636b84',
+              fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+            }}
+          >
+            🎙️ {isListening ? <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.05em' }}>{t('listening')}</span> : null}
+          </button>
+        )}
+        <button
+          onClick={() => setScorekeeperMode(true)}
+          style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #252a38', background: '#161922', color: '#636b84', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+        >
+          {t('scorekeeperMode')}
+        </button>
+      </div>
 
       {/* Score Card */}
       <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, overflow: 'hidden', position: 'relative', marginBottom: 12 }}>
