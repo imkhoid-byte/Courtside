@@ -479,29 +479,46 @@ export function ScorePage() {
     } else if (/\b(undo|back|deshacer|atrás)\b/.test(cmd)) {
       undo(); showToast('↩ Undone')
     } else if (/\b(ace|as)\b/.test(cmd)) {
-      addRally({ type: 'ace', shot: 'serve', player: state.serverOrder[state.serverIndex], team: state.serverOrder[state.serverIndex] === state.teamA.player1 || state.serverOrder[state.serverIndex] === state.teamA.player2 ? 'A' : 'B' })
+      const server = state.serverOrder[state.serverIndex]
+      const team: 'A' | 'B' = (server === state.teamA.player1 || server === state.teamA.player2) ? 'A' : 'B'
+      addRally({ type: 'ace', shot: 'serve', player: server, team })
+      addPoint(team)
       showToast('🔥 Ace!')
     } else if (/\b(double fault|doble falta)\b/.test(cmd)) {
-      addRally({ type: 'double_fault', shot: 'serve', player: state.serverOrder[state.serverIndex], team: 'A' })
+      const server = state.serverOrder[state.serverIndex]
+      const team: 'A' | 'B' = (server === state.teamA.player1 || server === state.teamA.player2) ? 'A' : 'B'
+      const opp: 'A' | 'B' = team === 'A' ? 'B' : 'A'
+      addRally({ type: 'double_fault', shot: 'serve', player: server, team })
+      addPoint(opp)
       showToast('❌ Double Fault')
     } else if (/\b(smash|remate)\b/.test(cmd)) {
       addRally({ type: 'winner', shot: 'smash', player: state.serverOrder[state.serverIndex], team: 'A' })
+      addPoint('A')
       showToast('💣 Smash!')
     } else if (/\b(bajada)\b/.test(cmd)) {
       addRally({ type: 'winner', shot: 'bajada', player: state.serverOrder[state.serverIndex], team: 'A' })
+      addPoint('A')
       showToast('🪃 Bajada!')
     } else if (/\b(vibora|víbora)\b/.test(cmd)) {
       addRally({ type: 'winner', shot: 'vibora', player: state.serverOrder[state.serverIndex], team: 'A' })
+      addPoint('A')
       showToast('🌀 Vibora!')
     } else if (/\b(lob|globo)\b/.test(cmd)) {
       addRally({ type: 'winner', shot: 'lob', player: state.serverOrder[state.serverIndex], team: 'A' })
+      addPoint('A')
       showToast('🪶 Lob!')
     } else if (/\b(winner|ganador)\b/.test(cmd)) {
       addRally({ type: 'winner', shot: 'forehand', player: state.serverOrder[state.serverIndex], team: 'A' })
+      addPoint('A')
       showToast('💥 Winner!')
     } else if (/\b(error|fallo)\b/.test(cmd)) {
       addRally({ type: 'unforced_error', shot: 'forehand', player: state.serverOrder[state.serverIndex], team: 'A' })
-      showToast('😬 Error')
+      addPoint('B')
+      showToast('😬 Error → point them')
+    } else if (/\b(their error|su error|their fault)\b/.test(cmd)) {
+      addRally({ type: 'unforced_error', shot: 'forehand', player: state.serverOrder[state.serverIndex], team: 'B' })
+      addPoint('A')
+      showToast('😬 Their error → point us')
     }
   }, [state, addPoint, undo, addRally, showToast])
 
