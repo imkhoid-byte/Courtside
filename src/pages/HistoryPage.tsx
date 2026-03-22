@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getCompletedMatches, getAllTournaments } from '../lib/db'
 import type { Match, Tournament } from '../lib/types'
 import { useApp } from '../contexts/AppContext'
@@ -6,6 +7,7 @@ import { useI18n } from '../contexts/I18nContext'
 import { getRankings } from '../lib/tournament'
 
 function MatchCard({ match, myName }: { match: Match; myName: string }) {
+  const navigate = useNavigate()
   const inA = match.teamA.player1 === myName || match.teamA.player2 === myName
   const isWin = match.winner === (inA ? 'A' : 'B')
   const myPartner = inA
@@ -17,7 +19,10 @@ function MatchCard({ match, myName }: { match: Match; myName: string }) {
   const setScores = match.sets.map(s => inA ? `${s[0]}-${s[1]}` : `${s[1]}-${s[0]}`)
 
   return (
-    <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, padding: '14px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+    <div
+      onClick={() => navigate(`/match/${match.id}`)}
+      style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, padding: '14px', display: 'flex', gap: 12, alignItems: 'flex-start', cursor: 'pointer' }}
+    >
       <div style={{
         width: 40, height: 40, borderRadius: 8, flexShrink: 0,
         background: isWin ? 'rgba(52,211,153,0.1)' : 'rgba(251,113,133,0.1)',
@@ -41,6 +46,7 @@ function MatchCard({ match, myName }: { match: Match; myName: string }) {
         {setScores.map((s, i) => (
           <span key={i} style={{ fontFamily: '"IBM Plex Mono"', fontSize: 13, color: '#949cb4', fontWeight: 600 }}>{s}</span>
         ))}
+        <span style={{ fontSize: 14, color: '#252a38', marginTop: 2 }}>›</span>
       </div>
     </div>
   )
