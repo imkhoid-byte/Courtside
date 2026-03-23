@@ -1,5 +1,6 @@
 import { openDB } from 'idb'
 import type { IDBPDatabase } from 'idb'
+import { emptyStats } from './types'
 import type { Match, Tournament, PlayerRating, Practice } from './types'
 
 const DB_NAME = 'sidecourt'
@@ -75,9 +76,18 @@ export async function saveMatch(match: Match): Promise<void> {
   await db.put('matches', match)
 }
 
+function normalizeMatch(m: Match): Match {
+  return {
+    ...m,
+    rallies: m.rallies ?? [],
+    stats: m.stats ?? { A: emptyStats(), B: emptyStats() },
+  }
+}
+
 export async function getMatch(id: string): Promise<Match | undefined> {
   const db = await getDB()
-  return db.get('matches', id)
+  const m = await db.get('matches', id)
+  return m ? normalizeMatch(m) : undefined
 }
 
 export async function getAllMatches(): Promise<Match[]> {
@@ -98,6 +108,7 @@ export async function getCompletedMatches(): Promise<Match[]> {
   const all = await db.getAll('matches')
   return all
     .filter(m => m.status === 'complete')
+    .map(normalizeMatch)
     .sort((a, b) => b.startTime.localeCompare(a.startTime))
 }
 
