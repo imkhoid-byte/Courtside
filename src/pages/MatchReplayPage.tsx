@@ -202,25 +202,36 @@ export function MatchReplayPage() {
     getMatch(id).then(m => { setMatch(m ?? null); setLoading(false) })
   }, [id])
 
-  // Replay ticker — use setInterval so replayIdx is NOT a dependency.
-  // This prevents rapid double-firing in React 18 concurrent mode.
+  // Reset replay index whenever user switches TO the replay tab
+  useEffect(() => {
+    if (activeView === 'replay') {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      setPlaying(false)
+      setReplayIdx(0)
+    }
+  }, [activeView])
+
+  // Replay ticker — setInterval, replayIdx NOT in deps to avoid rapid re-firing
   useEffect(() => {
     if (!playing || !match) return
-    const total = match.rallies.length
-    if (total === 0) { setPlaying(false); return }
+    const totalRallies = match.rallies.length
+    if (totalRallies === 0) { setPlaying(false); return }
     intervalRef.current = setInterval(() => {
-      setReplayIdx(prev => {
-        const next = prev + 1
-        if (next >= total) {
-          setPlaying(false)
-        }
-        return Math.min(next, total)
-      })
+      // Only increment index here — never call other setters inside functional updater
+      setReplayIdx(prev => Math.min(prev + 1, totalRallies))
     }, BASE_MS / speed)
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [playing, speed, match]) // replayIdx intentionally excluded
+  }, [playing, speed, match])
+
+  // Stop playing when replay reaches the end (separate effect — clean separation)
+  useEffect(() => {
+    if (!match) return
+    if (playing && replayIdx >= match.rallies.length && match.rallies.length > 0) {
+      setPlaying(false)
+    }
+  }, [replayIdx, playing, match])
 
   // Auto-scroll to newest rally
   useEffect(() => {
