@@ -34,8 +34,11 @@ function RallyRow({ rally, index, isNew }: { rally: RallyEvent; index: number; i
     <div style={{
       display: 'flex', alignItems: 'center', gap: 10,
       padding: '9px 12px', borderRadius: 10,
-      background: cfg.bg, borderLeft: `3px solid ${cfg.color}`,
+      background: isNew ? cfg.color + '18' : cfg.bg,
+      borderLeft: `3px solid ${cfg.color}`,
+      boxShadow: isNew ? `0 0 0 1px ${cfg.color}44` : 'none',
       animation: isNew ? 'slideIn 0.28s ease-out' : 'none',
+      transition: 'background 0.3s, box-shadow 0.3s',
     }}>
       <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 10, color: '#636b84', width: 24, textAlign: 'right', flexShrink: 0 }}>
         {index + 1}
@@ -191,7 +194,7 @@ export function MatchReplayPage() {
   const [replayIdx, setReplayIdx] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState<Speed>(1)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const lastRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -199,20 +202,36 @@ export function MatchReplayPage() {
     getMatch(id).then(m => { setMatch(m ?? null); setLoading(false) })
   }, [id])
 
-  // Replay ticker
+  // Replay ticker — use setInterval so replayIdx is NOT a dependency.
+  // This prevents rapid double-firing in React 18 concurrent mode.
   useEffect(() => {
     if (!playing || !match) return
-    if (replayIdx >= match.rallies.length) { setPlaying(false); return }
-    timerRef.current = setTimeout(() => setReplayIdx(i => i + 1), BASE_MS / speed)
-    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
-  }, [playing, replayIdx, speed, match])
+    const total = match.rallies.length
+    if (total === 0) { setPlaying(false); return }
+    intervalRef.current = setInterval(() => {
+      setReplayIdx(prev => {
+        const next = prev + 1
+        if (next >= total) {
+          setPlaying(false)
+        }
+        return Math.min(next, total)
+      })
+    }, BASE_MS / speed)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [playing, speed, match]) // replayIdx intentionally excluded
 
-  // Auto-scroll during playback
+  // Auto-scroll to newest rally
   useEffect(() => {
     if (playing && lastRef.current) lastRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [replayIdx, playing])
 
-  const resetReplay = useCallback(() => { setPlaying(false); setReplayIdx(0) }, [])
+  const resetReplay = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    setPlaying(false)
+    setReplayIdx(0)
+  }, [])
   const stepBack = useCallback(() => { setPlaying(false); setReplayIdx(i => Math.max(0, i - 1)) }, [])
   const stepFwd = useCallback(() => {
     if (!match) return
@@ -236,9 +255,7 @@ export function MatchReplayPage() {
   const sA = match.stats.A
   const sB = match.stats.B
   const total = match.rallies.length
-  const done = replayIdx >= total
-  const progress = total > 0 ? (replayIdx / total) * 100 : 0
-
+  const done = total > 0 && replayIdx >= total   // never true when no shot data
   // Running replay stats
   const shown = match.rallies.slice(0, replayIdx)
   const rA = { w: 0, e: 0 }; const rB = { w: 0, e: 0 }
@@ -423,32 +440,35 @@ export function MatchReplayPage() {
                       </div>
                     </div>
                   </div>
-                  {/* Progress bar */}
-                  <div style={{ height: 4, background: '#252a38', borderRadius: 2 }}>
-                    <div style={{ height: '100%', width: `${progress}%`, background: done ? '#34d399' : '#bef264', borderRadius: 2, transition: 'width 0.35s ease' }} />
-                  </div>
+                  {/* Scrubber — drag to jump to any point */}
+                  <input
+                    type="range" min={0} max={total} value={replayIdx}
+                    onChange={e => { setPlaying(false); setReplayIdx(Number(e.target.value)) }}
+                    style={{ width: '100%', accentColor: '#bef264', cursor: 'pointer' }}
+                  />
                 </div>
 
                 {/* Controls */}
                 <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, padding: '14px', marginBottom: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 12 }}>
                     {/* Reset */}
-                    <button onClick={resetReplay} style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #252a38', background: '#161922', cursor: 'pointer', color: '#636b84', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↺</button>
+                    <button onClick={resetReplay} title="Reset" style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #252a38', background: '#161922', cursor: 'pointer', color: '#636b84', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↺</button>
                     {/* Step back */}
-                    <button onClick={stepBack} disabled={replayIdx === 0} style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #252a38', background: '#161922', cursor: replayIdx === 0 ? 'default' : 'pointer', color: replayIdx === 0 ? '#252a38' : '#949cb4', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
+                    <button onClick={stepBack} disabled={replayIdx === 0} title="Previous shot" style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #252a38', background: '#161922', cursor: replayIdx === 0 ? 'default' : 'pointer', color: replayIdx === 0 ? '#252a38' : '#949cb4', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
                     {/* Play / Pause */}
                     <button
                       onClick={() => done ? resetReplay() : setPlaying(p => !p)}
+                      title={done ? 'Replay from start' : playing ? 'Pause' : 'Play'}
                       style={{
                         width: 56, height: 56, borderRadius: '50%', border: 'none', cursor: 'pointer',
-                        background: playing ? '#fb7185' : '#bef264',
-                        boxShadow: `0 4px 18px ${playing ? 'rgba(251,113,133,0.35)' : 'rgba(190,242,100,0.35)'}`,
-                        fontSize: 20, color: '#08090d', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: done ? '#34d399' : playing ? '#fb7185' : '#bef264',
+                        boxShadow: `0 4px 18px ${done ? 'rgba(52,211,153,0.35)' : playing ? 'rgba(251,113,133,0.35)' : 'rgba(190,242,100,0.35)'}`,
+                        fontSize: 22, color: '#08090d', display: 'flex', alignItems: 'center', justifyContent: 'center',
                         transition: 'background 0.15s, box-shadow 0.15s',
                       }}
                     >{done ? '↺' : playing ? '⏸' : '▶'}</button>
                     {/* Step forward */}
-                    <button onClick={stepFwd} disabled={done} style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #252a38', background: '#161922', cursor: done ? 'default' : 'pointer', color: done ? '#252a38' : '#949cb4', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
+                    <button onClick={stepFwd} disabled={done} title="Next shot" style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #252a38', background: '#161922', cursor: done ? 'default' : 'pointer', color: done ? '#252a38' : '#949cb4', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
                   </div>
                   {/* Speed */}
                   <div style={{ display: 'flex', justifyContent: 'center', gap: 4 }}>
@@ -466,10 +486,11 @@ export function MatchReplayPage() {
 
                 {/* Replay timeline */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  {replayIdx === 0 && (
-                    <div style={{ textAlign: 'center', padding: '20px 0', color: '#636b84' }}>
-                      <div style={{ fontSize: 13, marginBottom: 4 }}>Press ▶ to replay the match</div>
-                      <div style={{ fontSize: 11 }}>{total} shot{total !== 1 ? 's' : ''} recorded</div>
+                  {replayIdx === 0 && !playing && (
+                    <div style={{ textAlign: 'center', padding: '24px 0', color: '#636b84' }}>
+                      <div style={{ fontSize: 28, marginBottom: 8 }}>▶</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#949cb4', marginBottom: 4 }}>Press Play to start the replay</div>
+                      <div style={{ fontSize: 12 }}>{total} shot{total !== 1 ? 's' : ''} recorded · or drag the slider above</div>
                     </div>
                   )}
                   {match.sets.map((score, si) => {
