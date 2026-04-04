@@ -1,184 +1,171 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getMatch } from '../lib/db'
 import { useApp } from '../contexts/AppContext'
 import type { Match, RallyEvent } from '../lib/types'
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const SHOT_LABELS: Record<string, string> = {
-  forehand: 'Forehand',
-  backhand: 'Backhand',
-  serve: 'Serve',
-  volley: 'Volley',
-  smash: 'Smash',
-  lob: 'Lob',
-  bajada: 'Bajada',
-  vibora: 'Víbora',
-  bandeja: 'Bandeja',
-  wall_shot: 'Wall Shot',
-  chiquita: 'Chiquita',
+  forehand: 'Forehand', backhand: 'Backhand', serve: 'Serve',
+  volley: 'Volley', smash: 'Smash', lob: 'Lob',
+  bajada: 'Bajada', vibora: 'Víbora', bandeja: 'Bandeja',
+  wall_shot: 'Wall Shot', chiquita: 'Chiquita',
 }
 
-const TYPE_CONFIG: Record<RallyEvent['type'], { label: string; color: string; bg: string }> = {
-  ace:            { label: 'Ace',           color: '#bef264', bg: 'rgba(190,242,100,0.08)' },
-  winner:         { label: 'Winner',        color: '#34d399', bg: 'rgba(52,211,153,0.08)' },
-  forced_error:   { label: 'Forced Error',  color: '#fbbf24', bg: 'rgba(251,191,36,0.08)' },
-  unforced_error: { label: 'Unforced Err',  color: '#fb7185', bg: 'rgba(251,113,133,0.08)' },
-  double_fault:   { label: 'Double Fault',  color: '#f87171', bg: 'rgba(248,113,113,0.08)' },
+const TYPE_CFG: Record<RallyEvent['type'], { label: string; color: string; bg: string }> = {
+  ace:            { label: 'Ace',          color: '#bef264', bg: 'rgba(190,242,100,0.10)' },
+  winner:         { label: 'Winner',       color: '#34d399', bg: 'rgba(52,211,153,0.10)'  },
+  forced_error:   { label: 'Forced Err',   color: '#fbbf24', bg: 'rgba(251,191,36,0.10)'  },
+  unforced_error: { label: 'Unforced Err', color: '#fb7185', bg: 'rgba(251,113,133,0.10)' },
+  double_fault:   { label: 'Dbl Fault',    color: '#f87171', bg: 'rgba(248,113,113,0.10)' },
 }
 
-function RallyRow({ rally, index, teamANames, teamBNames }: {
-  rally: RallyEvent
-  index: number
-  teamANames: string[]
-  teamBNames: string[]
-}) {
-  const cfg = TYPE_CONFIG[rally.type]
-  const isPositive = rally.type === 'ace' || rally.type === 'winner'
-  const onMyTeam = teamANames.includes(rally.player) || teamBNames.includes(rally.player)
-  void onMyTeam
+const SPEEDS = [0.5, 1, 2, 3] as const
+type Speed = typeof SPEEDS[number]
+const BASE_MS = 1800
+type View = 'pbp' | 'replay' | 'coaching'
 
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function RallyRow({ rally, index, isNew }: { rally: RallyEvent; index: number; isNew: boolean }) {
+  const cfg = TYPE_CFG[rally.type]
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 10,
-      padding: '9px 12px',
-      background: cfg.bg,
-      borderRadius: 10,
-      borderLeft: `3px solid ${cfg.color}`,
+      padding: '9px 12px', borderRadius: 10,
+      background: cfg.bg, borderLeft: `3px solid ${cfg.color}`,
+      animation: isNew ? 'slideIn 0.28s ease-out' : 'none',
     }}>
-      {/* Rally number */}
-      <span style={{
-        fontFamily: '"IBM Plex Mono"', fontSize: 10, color: '#636b84',
-        flexShrink: 0, width: 22, textAlign: 'right',
-      }}>
+      <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 10, color: '#636b84', width: 24, textAlign: 'right', flexShrink: 0 }}>
         {index + 1}
       </span>
-
-      {/* Player */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: '#e4e8f2' }}>{rally.player}</span>
-        <span style={{ fontSize: 12, color: '#636b84', marginLeft: 6 }}>
-          {SHOT_LABELS[rally.shot] ?? rally.shot}
-        </span>
+        <span style={{ fontSize: 12, color: '#636b84', marginLeft: 6 }}>{SHOT_LABELS[rally.shot] ?? rally.shot}</span>
       </div>
-
-      {/* Type badge */}
       <span style={{
         fontSize: 10, fontWeight: 700, color: cfg.color,
-        background: `rgba(${isPositive ? '52,211,153' : '251,113,133'},0.1)`,
-        padding: '2px 7px', borderRadius: 5, flexShrink: 0, letterSpacing: '0.04em',
-      }}>
-        {cfg.label}
-      </span>
+        background: cfg.bg, border: `1px solid ${cfg.color}33`,
+        padding: '2px 7px', borderRadius: 5, flexShrink: 0,
+      }}>{cfg.label}</span>
     </div>
   )
 }
 
-function SetSummaryCard({ setIndex, setScore, teamALabel, teamBLabel }: {
-  setIndex: number
-  setScore: [number, number]
-  teamALabel: string
-  teamBLabel: string
-}) {
-  const aWon = setScore[0] > setScore[1]
+function SetDivider({ setIndex, score, count }: { setIndex: number; score: [number, number]; count?: number }) {
   return (
     <div style={{
-      background: '#0f1117', border: '1px solid #252a38', borderRadius: 12,
-      padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12,
+      display: 'flex', alignItems: 'center', gap: 8,
+      margin: '10px 0 6px', fontSize: 10, fontWeight: 700,
+      color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em',
     }}>
-      <span style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', width: 40, flexShrink: 0 }}>
-        Set {setIndex + 1}
-      </span>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: aWon ? '#e4e8f2' : '#636b84', flex: 1, textAlign: 'right' }}>{teamALabel}</span>
-        <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 17, fontWeight: 800, color: '#bef264' }}>
-          {setScore[0]}–{setScore[1]}
-        </span>
-        <span style={{ fontSize: 13, fontWeight: 700, color: !aWon ? '#e4e8f2' : '#636b84', flex: 1 }}>{teamBLabel}</span>
-      </div>
+      <span style={{ flexShrink: 0 }}>Set {setIndex + 1}</span>
+      <span style={{ color: '#252a38' }}>·</span>
+      <span style={{ fontFamily: '"IBM Plex Mono"', color: '#949cb4', flexShrink: 0 }}>{score[0]}–{score[1]}</span>
+      <span style={{ flex: 1, height: 1, background: '#1e2330' }} />
+      {count !== undefined && <span style={{ flexShrink: 0 }}>{count} shots</span>}
     </div>
   )
 }
 
-function CoachingInsights({ rallies }: { rallies: RallyEvent[] }) {
-  if (rallies.length === 0) return null
+function EmptyShots() {
+  return (
+    <div style={{ textAlign: 'center', padding: '40px 0', color: '#636b84' }}>
+      <div style={{ fontSize: 36, marginBottom: 10 }}>🎾</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: '#949cb4', marginBottom: 4 }}>No Shot Data</div>
+      <div style={{ fontSize: 12 }}>Use the shot tracker during matches to unlock this</div>
+    </div>
+  )
+}
 
-  // Per-shot: wins vs errors
-  const shotStats: Record<string, { wins: number; errors: number; total: number }> = {}
+function CoachingTab({ rallies }: { rallies: RallyEvent[] }) {
+  if (rallies.length === 0) return <EmptyShots />
+
+  // Shot stats
+  const shotMap: Record<string, { w: number; e: number; n: number }> = {}
   rallies.forEach(r => {
-    if (!shotStats[r.shot]) shotStats[r.shot] = { wins: 0, errors: 0, total: 0 }
-    shotStats[r.shot].total++
-    if (r.type === 'winner' || r.type === 'ace') shotStats[r.shot].wins++
-    if (r.type === 'unforced_error' || r.type === 'double_fault') shotStats[r.shot].errors++
+    if (!shotMap[r.shot]) shotMap[r.shot] = { w: 0, e: 0, n: 0 }
+    shotMap[r.shot].n++
+    if (r.type === 'winner' || r.type === 'ace') shotMap[r.shot].w++
+    if (r.type === 'unforced_error' || r.type === 'double_fault') shotMap[r.shot].e++
   })
+  const shots = Object.entries(shotMap).sort((a, b) => b[1].n - a[1].n)
+  const best = shots.length ? [...shots].sort((a, b) => (b[1].w / b[1].n) - (a[1].w / a[1].n))[0] : null
+  const worst = shots.filter(([, s]) => s.e > 0).sort((a, b) => (b[1].e / b[1].n) - (a[1].e / a[1].n))[0] ?? null
 
-  const shotEntries = Object.entries(shotStats).filter(([, s]) => s.total >= 2)
-  if (shotEntries.length === 0) return null
-
-  const bestShot = shotEntries
-    .sort((a, b) => (b[1].wins / b[1].total) - (a[1].wins / a[1].total))[0]
-  const worstShot = shotEntries
-    .filter(([, s]) => s.errors > 0)
-    .sort((a, b) => (b[1].errors / b[1].total) - (a[1].errors / a[1].total))[0]
-
-  // Per-player wins/errors
-  const playerStats: Record<string, { wins: number; errors: number; total: number }> = {}
+  // Player stats
+  const pMap: Record<string, { w: number; e: number; n: number }> = {}
   rallies.forEach(r => {
-    if (!playerStats[r.player]) playerStats[r.player] = { wins: 0, errors: 0, total: 0 }
-    playerStats[r.player].total++
-    if (r.type === 'winner' || r.type === 'ace') playerStats[r.player].wins++
-    if (r.type === 'unforced_error' || r.type === 'double_fault') playerStats[r.player].errors++
+    if (!pMap[r.player]) pMap[r.player] = { w: 0, e: 0, n: 0 }
+    pMap[r.player].n++
+    if (r.type === 'winner' || r.type === 'ace') pMap[r.player].w++
+    if (r.type === 'unforced_error' || r.type === 'double_fault') pMap[r.player].e++
   })
-
-  const playerEntries = Object.entries(playerStats).sort((a, b) => b[1].total - a[1].total)
+  const players = Object.entries(pMap).sort((a, b) => b[1].n - a[1].n)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-        Coaching Insights
-      </div>
-
-      {/* Key shots callouts */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Callouts */}
       <div style={{ display: 'flex', gap: 8 }}>
-        {bestShot && (
-          <div style={{ flex: 1, background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.2)', borderRadius: 10, padding: '10px 12px' }}>
-            <div style={{ fontSize: 10, color: '#34d399', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Best Shot</div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#e4e8f2' }}>{SHOT_LABELS[bestShot[0]] ?? bestShot[0]}</div>
-            <div style={{ fontSize: 11, color: '#636b84', marginTop: 2 }}>{bestShot[1].wins}W / {bestShot[1].total} plays</div>
+        {best && (
+          <div style={{ flex: 1, background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.2)', borderRadius: 12, padding: 12 }}>
+            <div style={{ fontSize: 10, color: '#34d399', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Best Shot</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#e4e8f2' }}>{SHOT_LABELS[best[0]] ?? best[0]}</div>
+            <div style={{ fontSize: 11, color: '#636b84', marginTop: 3 }}>{best[1].w}W · {best[1].n} plays</div>
           </div>
         )}
-        {worstShot && (
-          <div style={{ flex: 1, background: 'rgba(251,113,133,0.06)', border: '1px solid rgba(251,113,133,0.2)', borderRadius: 10, padding: '10px 12px' }}>
-            <div style={{ fontSize: 10, color: '#fb7185', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Most Errors</div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#e4e8f2' }}>{SHOT_LABELS[worstShot[0]] ?? worstShot[0]}</div>
-            <div style={{ fontSize: 11, color: '#636b84', marginTop: 2 }}>{worstShot[1].errors} errors / {worstShot[1].total} plays</div>
+        {worst && (
+          <div style={{ flex: 1, background: 'rgba(251,113,133,0.06)', border: '1px solid rgba(251,113,133,0.2)', borderRadius: 12, padding: 12 }}>
+            <div style={{ fontSize: 10, color: '#fb7185', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Most Errors</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#e4e8f2' }}>{SHOT_LABELS[worst[0]] ?? worst[0]}</div>
+            <div style={{ fontSize: 11, color: '#636b84', marginTop: 3 }}>{worst[1].e}E · {worst[1].n} plays</div>
           </div>
         )}
       </div>
 
-      {/* Per-player breakdown */}
+      {/* Shot efficiency table */}
       <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', borderBottom: '1px solid #252a38', fontSize: 11, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-          Player Breakdown
-        </div>
-        {playerEntries.map(([player, s]) => {
-          const winRate = s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0
+        <div style={{ padding: '10px 14px', borderBottom: '1px solid #252a38', fontSize: 11, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Shot Efficiency</div>
+        {shots.map(([shot, s]) => {
+          const eff = Math.round((s.w / s.n) * 100)
+          const good = eff >= 50
           return (
-            <div key={player} style={{ padding: '10px 14px', borderBottom: '1px solid #161922', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: '50%', background: '#252a38',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}>
-                <span style={{ fontSize: 11, fontWeight: 800, color: '#636b84' }}>{player[0]?.toUpperCase()}</span>
+            <div key={shot} style={{ padding: '9px 14px', borderBottom: '1px solid #161922', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 78, fontSize: 12, fontWeight: 600, color: '#e4e8f2', flexShrink: 0 }}>{SHOT_LABELS[shot] ?? shot}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ height: 4, background: '#252a38', borderRadius: 2 }}>
+                  <div style={{ height: '100%', width: `${eff}%`, background: good ? '#34d399' : '#fb7185', borderRadius: 2 }} />
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 80 }}>
+                <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 11, fontWeight: 700, color: good ? '#34d399' : '#fb7185' }}>{eff}%</span>
+                <span style={{ fontSize: 10, color: '#636b84', marginLeft: 6 }}>{s.w}W {s.e}E</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Player breakdown */}
+      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 14px', borderBottom: '1px solid #252a38', fontSize: 11, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Player Breakdown</div>
+        {players.map(([name, s]) => {
+          const rate = s.n > 0 ? Math.round((s.w / s.n) * 100) : 0
+          return (
+            <div key={name} style={{ padding: '10px 14px', borderBottom: '1px solid #161922', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#252a38', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: '#636b84' }}>{name[0]?.toUpperCase()}</span>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#e4e8f2', marginBottom: 3 }}>{player}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#e4e8f2', marginBottom: 4 }}>{name}</div>
                 <div style={{ height: 3, background: '#252a38', borderRadius: 2 }}>
-                  <div style={{ height: '100%', width: `${winRate}%`, background: winRate >= 50 ? '#34d399' : '#fb7185', borderRadius: 2 }} />
+                  <div style={{ height: '100%', width: `${rate}%`, background: rate >= 50 ? '#34d399' : '#fb7185', borderRadius: 2 }} />
                 </div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 12, fontWeight: 700, color: '#bef264' }}>{s.wins}W {s.errors}E</div>
-                <div style={{ fontSize: 10, color: '#636b84' }}>{s.total} shots</div>
+                <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 12, fontWeight: 700, color: '#bef264' }}>{s.w}W {s.e}E</div>
+                <div style={{ fontSize: 10, color: '#636b84' }}>{s.n} shots</div>
               </div>
             </div>
           )
@@ -188,300 +175,349 @@ function CoachingInsights({ rallies }: { rallies: RallyEvent[] }) {
   )
 }
 
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
 export function MatchReplayPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { myName } = useApp()
+
   const [match, setMatch] = useState<Match | null>(null)
   const [loading, setLoading] = useState(true)
+  const [activeView, setActiveView] = useState<View>('pbp')
   const [activeSet, setActiveSet] = useState<number | 'all'>('all')
-  const [activeView, setActiveView] = useState<'timeline' | 'insights'>('timeline')
+
+  // Replay state
+  const [replayIdx, setReplayIdx] = useState(0)
+  const [playing, setPlaying] = useState(false)
+  const [speed, setSpeed] = useState<Speed>(1)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!id) return
-    getMatch(id).then(m => {
-      setMatch(m ?? null)
-      setLoading(false)
-    })
+    if (!id) { setLoading(false); return }
+    getMatch(id).then(m => { setMatch(m ?? null); setLoading(false) })
   }, [id])
 
-  if (loading) {
-    return (
-      <div style={{ padding: 32, textAlign: 'center', color: '#636b84', fontFamily: '"DM Sans"' }}>
-        Loading…
-      </div>
-    )
-  }
+  // Replay ticker
+  useEffect(() => {
+    if (!playing || !match) return
+    if (replayIdx >= match.rallies.length) { setPlaying(false); return }
+    timerRef.current = setTimeout(() => setReplayIdx(i => i + 1), BASE_MS / speed)
+    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
+  }, [playing, replayIdx, speed, match])
 
-  if (!match) {
-    return (
-      <div style={{ padding: 32, textAlign: 'center', color: '#636b84', fontFamily: '"DM Sans"' }}>
-        Match not found.
-        <br />
-        <button onClick={() => navigate(-1)} style={{ marginTop: 12, color: '#bef264', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }}>
-          Go back
-        </button>
-      </div>
-    )
-  }
+  // Auto-scroll during playback
+  useEffect(() => {
+    if (playing && lastRef.current) lastRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [replayIdx, playing])
+
+  const resetReplay = useCallback(() => { setPlaying(false); setReplayIdx(0) }, [])
+  const stepBack = useCallback(() => { setPlaying(false); setReplayIdx(i => Math.max(0, i - 1)) }, [])
+  const stepFwd = useCallback(() => {
+    if (!match) return
+    setPlaying(false); setReplayIdx(i => Math.min(match.rallies.length, i + 1))
+  }, [match])
+
+  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#636b84', fontFamily: '"DM Sans"' }}>Loading…</div>
+  if (!match) return (
+    <div style={{ padding: 40, textAlign: 'center', color: '#636b84', fontFamily: '"DM Sans"' }}>
+      Match not found.
+      <br /><button onClick={() => navigate(-1)} style={{ marginTop: 12, color: '#bef264', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }}>← Go back</button>
+    </div>
+  )
 
   const me = myName || 'You'
   const inA = match.teamA.player1 === me || match.teamA.player2 === me
-  const teamALabel = [match.teamA.player1, match.teamA.player2].filter(Boolean).join(' & ')
-  const teamBLabel = [match.teamB.player1, match.teamB.player2].filter(Boolean).join(' & ')
-  const myTeamLabel = inA ? teamALabel : teamBLabel
-  const oppTeamLabel = inA ? teamBLabel : teamALabel
+  const labelA = [match.teamA.player1, match.teamA.player2].filter(Boolean).join(' & ')
+  const labelB = [match.teamB.player1, match.teamB.player2].filter(Boolean).join(' & ')
   const isWin = match.winner === (inA ? 'A' : 'B')
   const date = new Date(match.startTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
-  const setScores = match.sets.map(s => inA ? s : ([s[1], s[0]] as [number, number]))
-  const numSets = match.sets.length
+  const sA = match.stats.A
+  const sB = match.stats.B
+  const total = match.rallies.length
+  const done = replayIdx >= total
+  const progress = total > 0 ? (replayIdx / total) * 100 : 0
 
-  // Filter rallies by selected set
-  const visibleRallies = match.rallies.filter(r =>
-    activeSet === 'all' || r.setIndex === activeSet
-  )
+  // Running replay stats
+  const shown = match.rallies.slice(0, replayIdx)
+  const rA = { w: 0, e: 0 }; const rB = { w: 0, e: 0 }
+  shown.forEach(r => {
+    const t = r.team === 'A' ? rA : rB
+    if (r.type === 'winner' || r.type === 'ace') t.w++
+    if (r.type === 'unforced_error' || r.type === 'double_fault') t.e++
+  })
+  const curSet = replayIdx > 0 ? (match.rallies[replayIdx - 1]?.setIndex ?? 0) : 0
 
-  // Team stats
-  const statA = match.stats.A
-  const statB = match.stats.B
+  // PBP filtered rallies
+  const pbpRallies = match.rallies.filter(r => activeSet === 'all' || r.setIndex === activeSet)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: '"DM Sans"' }}>
-      {/* Header */}
+    <div style={{ fontFamily: '"DM Sans"', background: '#08090d', minHeight: '100%', paddingBottom: 96 }}>
+      <style>{`@keyframes slideIn { from { opacity:0; transform:translateY(9px) } to { opacity:1; transform:translateY(0) } }`}</style>
+
+      {/* ── Sticky header ── */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '12px 16px', borderBottom: '1px solid #252a38', flexShrink: 0,
+        position: 'sticky', top: 0, zIndex: 20,
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '10px 16px',
+        background: 'rgba(8,9,13,0.97)', backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid #1e2330',
       }}>
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: '#949cb4', fontSize: 20, padding: 0, lineHeight: 1,
-            display: 'flex', alignItems: 'center',
-          }}
-        >
-          ‹
-        </button>
+        <button onClick={() => navigate(-1)} style={{
+          width: 32, height: 32, borderRadius: 8, border: '1px solid #252a38',
+          background: '#0f1117', cursor: 'pointer', color: '#949cb4',
+          fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>‹</button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: '#e4e8f2', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            Match Replay
-          </div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#e4e8f2', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Match Replay</div>
           <div style={{ fontSize: 11, color: '#636b84' }}>{date}{match.venue ? ` · ${match.venue}` : ''}</div>
         </div>
         <div style={{
-          padding: '4px 10px', borderRadius: 6,
+          padding: '4px 10px', borderRadius: 6, flexShrink: 0,
           background: isWin ? 'rgba(52,211,153,0.12)' : 'rgba(251,113,133,0.12)',
-          color: isWin ? '#34d399' : '#fb7185',
-          fontSize: 11, fontWeight: 800,
-        }}>
-          {isWin ? 'WIN' : 'LOSS'}
-        </div>
+          border: `1px solid ${isWin ? 'rgba(52,211,153,0.3)' : 'rgba(251,113,133,0.3)'}`,
+          color: isWin ? '#34d399' : '#fb7185', fontSize: 11, fontWeight: 800,
+        }}>{isWin ? 'WIN' : 'LOSS'}</div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 80px' }}>
-        {/* Match summary */}
-        <div style={{
-          background: '#0f1117', border: '1px solid #252a38', borderRadius: 14,
-          padding: '14px 16px', marginBottom: 14,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <div style={{ flex: 1, textAlign: 'right' }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: match.winner === 'A' ? '#e4e8f2' : '#636b84' }}>{teamALabel}</div>
+      <div style={{ padding: '14px 16px 0' }}>
+        {/* ── Match summary ── */}
+        <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: '14px 16px', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ flex: 1, textAlign: 'right', paddingRight: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: match.winner === 'A' ? '#e4e8f2' : '#636b84' }}>{labelA}</div>
             </div>
-            <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 11, color: '#636b84', fontWeight: 700, padding: '0 6px' }}>vs</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: match.winner === 'B' ? '#e4e8f2' : '#636b84' }}>{teamBLabel}</div>
+            <div style={{ fontSize: 11, color: '#636b84', fontWeight: 700, flexShrink: 0 }}>vs</div>
+            <div style={{ flex: 1, paddingLeft: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: match.winner === 'B' ? '#e4e8f2' : '#636b84' }}>{labelB}</div>
             </div>
           </div>
-
-          {/* Set scores */}
-          <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 10 }}>
             {match.sets.map((s, i) => {
-              const aWon = s[0] > s[1]
+              const aW = s[0] > s[1]
               return (
-                <div key={i} style={{
-                  display: 'flex', gap: 0, borderRadius: 8, overflow: 'hidden',
-                  border: '1px solid #252a38', flexShrink: 0,
-                }}>
-                  <div style={{ padding: '5px 10px', background: aWon ? 'rgba(190,242,100,0.1)' : '#161922' }}>
-                    <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 14, fontWeight: 800, color: aWon ? '#bef264' : '#636b84' }}>{s[0]}</span>
+                <div key={i} style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1px solid #252a38' }}>
+                  <div style={{ padding: '5px 11px', background: aW ? 'rgba(190,242,100,0.1)' : 'transparent' }}>
+                    <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 15, fontWeight: 800, color: aW ? '#bef264' : '#636b84' }}>{s[0]}</span>
                   </div>
-                  <div style={{ padding: '5px 4px', background: '#0d0f14', display: 'flex', alignItems: 'center' }}>
-                    <span style={{ fontSize: 10, color: '#252a38' }}>–</span>
+                  <div style={{ padding: '5px 0', background: '#0d0f14', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ fontSize: 10, color: '#1e2330', width: 8, textAlign: 'center' }}>–</span>
                   </div>
-                  <div style={{ padding: '5px 10px', background: !aWon ? 'rgba(190,242,100,0.1)' : '#161922' }}>
-                    <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 14, fontWeight: 800, color: !aWon ? '#bef264' : '#636b84' }}>{s[1]}</span>
+                  <div style={{ padding: '5px 11px', background: !aW ? 'rgba(190,242,100,0.1)' : 'transparent' }}>
+                    <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 15, fontWeight: 800, color: !aW ? '#bef264' : '#636b84' }}>{s[1]}</span>
                   </div>
                 </div>
               )
             })}
           </div>
-
-          {/* Surface / mode */}
-          <div style={{ fontSize: 11, color: '#636b84', textAlign: 'center', marginTop: 8 }}>
-            {match.surface} · {match.scoringMode === 'golden_point' ? 'Golden Point' : 'Advantage'}
-            {match.duration ? ` · ${match.duration}min` : ''}
+          <div style={{ fontSize: 11, color: '#636b84', textAlign: 'center' }}>
+            {match.surface} · {match.scoringMode === 'golden_point' ? 'Golden Point' : 'Advantage'}{match.duration ? ` · ${match.duration}m` : ''}
           </div>
         </div>
 
-        {/* Team stats strip */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 0,
-          background: '#0f1117', border: '1px solid #252a38', borderRadius: 12,
-          overflow: 'hidden', marginBottom: 14,
-        }}>
-          {[
-            { label: 'Aces', a: statA.aces, b: statB.aces },
-            { label: 'Winners', a: statA.winners, b: statB.winners },
-            { label: 'Unforced E', a: statA.unforcedErrors, b: statB.unforcedErrors },
-            { label: 'Dbl Faults', a: statA.doubleFaults, b: statB.doubleFaults },
-            { label: 'Smashes', a: statA.smashes, b: statB.smashes },
-          ].map((row, i) => (
+        {/* ── Stats strip ── */}
+        <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
+          {([
+            { label: 'Aces',        a: sA.aces,           b: sB.aces },
+            { label: 'Winners',     a: sA.winners,        b: sB.winners },
+            { label: 'Unforced E',  a: sA.unforcedErrors, b: sB.unforcedErrors },
+            { label: 'Dbl Faults',  a: sA.doubleFaults,   b: sB.doubleFaults },
+            { label: 'Smashes',     a: sA.smashes,        b: sB.smashes },
+          ] as { label: string; a: number; b: number }[]).map((row, i, arr) => (
             <div key={row.label} style={{
-              gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr auto 1fr',
-              padding: '7px 14px', borderBottom: i < 4 ? '1px solid #161922' : 'none',
+              display: 'grid', gridTemplateColumns: '1fr auto 1fr',
+              padding: '7px 14px', borderBottom: i < arr.length - 1 ? '1px solid #161922' : 'none',
             }}>
-              <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 14, fontWeight: 700, color: row.a > row.b ? '#bef264' : '#636b84', textAlign: 'right' }}>{row.a}</span>
-              <span style={{ fontSize: 10, color: '#636b84', textAlign: 'center', padding: '0 10px', alignSelf: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{row.label}</span>
+              <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 14, fontWeight: 700, textAlign: 'right', color: row.a > row.b ? '#bef264' : '#636b84' }}>{row.a}</span>
+              <span style={{ fontSize: 10, color: '#636b84', textAlign: 'center', padding: '0 12px', alignSelf: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{row.label}</span>
               <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 14, fontWeight: 700, color: row.b > row.a ? '#bef264' : '#636b84' }}>{row.b}</span>
             </div>
           ))}
-          {/* Team labels */}
-          <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr auto 1fr', padding: '6px 14px', background: '#161922' }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#949cb4', textAlign: 'right' }}>{teamALabel}</span>
-            <span style={{ fontSize: 10, color: '#252a38', padding: '0 10px' }}>·</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#949cb4' }}>{teamBLabel}</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', padding: '6px 14px', background: '#161922' }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#949cb4', textAlign: 'right' }}>{labelA}</span>
+            <span style={{ width: 32 }} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#949cb4' }}>{labelB}</span>
           </div>
         </div>
 
-        {/* View toggle */}
+        {/* ── Tab bar ── */}
         <div style={{ display: 'flex', background: '#0f1117', borderRadius: 10, padding: 3, marginBottom: 14, border: '1px solid #252a38' }}>
-          {(['timeline', 'insights'] as const).map(v => (
+          {([['pbp', 'Play by Play'], ['replay', '▶ Live Replay'], ['coaching', 'Coaching']] as [View, string][]).map(([v, label]) => (
             <button key={v} onClick={() => setActiveView(v)} style={{
-              flex: 1, padding: '8px', borderRadius: 8, border: 'none', cursor: 'pointer',
+              flex: 1, padding: '8px 4px', borderRadius: 7, border: 'none', cursor: 'pointer',
               background: activeView === v ? '#252a38' : 'none',
               color: activeView === v ? '#e4e8f2' : '#636b84',
-              fontSize: 12, fontWeight: 700, fontFamily: '"DM Sans"',
-              transition: 'all 0.15s',
-            }}>
-              {v === 'timeline' ? 'Play by Play' : 'Coaching'}
-            </button>
+              fontSize: 11, fontWeight: 700, fontFamily: '"DM Sans"',
+              transition: 'all 0.15s', whiteSpace: 'nowrap',
+            }}>{label}</button>
           ))}
         </div>
 
-        {activeView === 'timeline' ? (
+        {/* ══════════ PLAY BY PLAY ══════════ */}
+        {activeView === 'pbp' && (
           <>
-            {/* Set filter tabs */}
-            {numSets > 1 && (
+            {match.sets.length > 1 && (
               <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', scrollbarWidth: 'none' }}>
-                <button
-                  onClick={() => setActiveSet('all')}
-                  style={{
-                    flexShrink: 0, padding: '6px 12px', borderRadius: 7, border: 'none', cursor: 'pointer',
-                    background: activeSet === 'all' ? '#bef264' : '#0f1117',
-                    color: activeSet === 'all' ? '#08090d' : '#636b84',
-                    fontSize: 11, fontWeight: 700, fontFamily: '"DM Sans"',
-                  }}
-                >
-                  All Sets
-                </button>
-                {match.sets.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveSet(i)}
-                    style={{
-                      flexShrink: 0, padding: '6px 12px', borderRadius: 7, border: 'none', cursor: 'pointer',
-                      background: activeSet === i ? '#bef264' : '#0f1117',
-                      color: activeSet === i ? '#08090d' : '#636b84',
+                {(['all', ...match.sets.map((_, i) => i)] as Array<'all' | number>).map(key => {
+                  const active = activeSet === key
+                  return (
+                    <button key={String(key)} onClick={() => setActiveSet(key)} style={{
+                      flexShrink: 0, padding: '6px 14px', borderRadius: 7, cursor: 'pointer',
+                      background: active ? '#bef264' : '#0f1117',
+                      color: active ? '#08090d' : '#636b84',
+                      border: active ? 'none' : '1px solid #252a38',
                       fontSize: 11, fontWeight: 700, fontFamily: '"DM Sans"',
-                    }}
-                  >
-                    Set {i + 1}
-                  </button>
-                ))}
+                    }}>{key === 'all' ? 'All Sets' : `Set ${(key as number) + 1}`}</button>
+                  )
+                })}
               </div>
             )}
-
-            {/* Set summary for active set */}
-            {activeSet !== 'all' && (
-              <SetSummaryCard
-                setIndex={activeSet}
-                setScore={setScores[activeSet]}
-                teamALabel={myTeamLabel}
-                teamBLabel={oppTeamLabel}
-              />
-            )}
-
-            {/* Timeline */}
-            {visibleRallies.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 0', color: '#636b84' }}>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>🎾</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#949cb4', marginBottom: 4 }}>No Shot Data</div>
-                <div style={{ fontSize: 12 }}>Shot tracking wasn't used in this match</div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 12 }}>
-                {/* Group by set if showing all */}
+            {pbpRallies.length === 0 ? <EmptyShots /> : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 {activeSet === 'all'
-                  ? match.sets.map((_, setIdx) => {
-                    const setRallies = match.rallies.filter(r => r.setIndex === setIdx)
-                    if (setRallies.length === 0) return null
-                    let runningIdx = match.rallies.filter(r => r.setIndex < setIdx).length
-                    return (
-                      <div key={setIdx}>
-                        <div style={{
-                          fontSize: 10, fontWeight: 700, color: '#636b84',
-                          textTransform: 'uppercase', letterSpacing: '0.07em',
-                          margin: setIdx > 0 ? '12px 0 6px' : '0 0 6px',
-                          display: 'flex', alignItems: 'center', gap: 8,
-                        }}>
-                          <span>Set {setIdx + 1}</span>
-                          <span style={{ color: '#252a38', fontWeight: 400 }}>·</span>
-                          <span style={{ fontFamily: '"IBM Plex Mono"' }}>
-                            {match.sets[setIdx][0]}–{match.sets[setIdx][1]}
-                          </span>
-                          <span style={{ flex: 1, height: 1, background: '#252a38', marginLeft: 4 }} />
-                          <span>{setRallies.length} shots</span>
+                  ? match.sets.map((score, si) => {
+                      const sr = match.rallies.filter(r => r.setIndex === si)
+                      if (!sr.length) return null
+                      const offset = match.rallies.filter(r => r.setIndex < si).length
+                      return (
+                        <div key={si}>
+                          <SetDivider setIndex={si} score={score} count={sr.length} />
+                          {sr.map((r, i) => <div key={r.id} style={{ marginBottom: 5 }}><RallyRow rally={r} index={offset + i} isNew={false} /></div>)}
                         </div>
-                        {setRallies.map((r, i) => (
-                          <div key={r.id} style={{ marginBottom: 5 }}>
-                            <RallyRow
-                              rally={r}
-                              index={runningIdx + i}
-                              teamANames={[match.teamA.player1, match.teamA.player2]}
-                              teamBNames={[match.teamB.player1, match.teamB.player2]}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  })
-                  : visibleRallies.map((r, i) => (
-                    <RallyRow
-                      key={r.id}
-                      rally={r}
-                      index={i}
-                      teamANames={[match.teamA.player1, match.teamA.player2]}
-                      teamBNames={[match.teamB.player1, match.teamB.player2]}
-                    />
-                  ))
+                      )
+                    })
+                  : pbpRallies.map((r, i) => <div key={r.id} style={{ marginBottom: 5 }}><RallyRow rally={r} index={i} isNew={false} /></div>)
                 }
               </div>
             )}
           </>
-        ) : (
-          <CoachingInsights rallies={match.rallies} />
         )}
+
+        {/* ══════════ LIVE REPLAY ══════════ */}
+        {activeView === 'replay' && (
+          <div>
+            {total === 0 ? <EmptyShots /> : (
+              <>
+                {/* Scoreboard */}
+                <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, padding: '12px 14px', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                    <div style={{ flex: 1, textAlign: 'right' }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#e4e8f2', marginBottom: 3 }}>{labelA}</div>
+                      <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 12 }}>
+                        <span style={{ color: '#34d399' }}>{rA.w}▲ </span>
+                        <span style={{ color: '#fb7185' }}>{rA.e}✕</span>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'center', flexShrink: 0, minWidth: 60 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>
+                        {done ? 'Full Time' : replayIdx === 0 ? 'Ready' : `Set ${curSet + 1}`}
+                      </div>
+                      <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 11, color: '#949cb4' }}>{replayIdx}/{total}</div>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#e4e8f2', marginBottom: 3 }}>{labelB}</div>
+                      <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 12 }}>
+                        <span style={{ color: '#34d399' }}>{rB.w}▲ </span>
+                        <span style={{ color: '#fb7185' }}>{rB.e}✕</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Progress bar */}
+                  <div style={{ height: 4, background: '#252a38', borderRadius: 2 }}>
+                    <div style={{ height: '100%', width: `${progress}%`, background: done ? '#34d399' : '#bef264', borderRadius: 2, transition: 'width 0.35s ease' }} />
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, padding: '14px', marginBottom: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 12 }}>
+                    {/* Reset */}
+                    <button onClick={resetReplay} style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #252a38', background: '#161922', cursor: 'pointer', color: '#636b84', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↺</button>
+                    {/* Step back */}
+                    <button onClick={stepBack} disabled={replayIdx === 0} style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #252a38', background: '#161922', cursor: replayIdx === 0 ? 'default' : 'pointer', color: replayIdx === 0 ? '#252a38' : '#949cb4', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
+                    {/* Play / Pause */}
+                    <button
+                      onClick={() => done ? resetReplay() : setPlaying(p => !p)}
+                      style={{
+                        width: 56, height: 56, borderRadius: '50%', border: 'none', cursor: 'pointer',
+                        background: playing ? '#fb7185' : '#bef264',
+                        boxShadow: `0 4px 18px ${playing ? 'rgba(251,113,133,0.35)' : 'rgba(190,242,100,0.35)'}`,
+                        fontSize: 20, color: '#08090d', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'background 0.15s, box-shadow 0.15s',
+                      }}
+                    >{done ? '↺' : playing ? '⏸' : '▶'}</button>
+                    {/* Step forward */}
+                    <button onClick={stepFwd} disabled={done} style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #252a38', background: '#161922', cursor: done ? 'default' : 'pointer', color: done ? '#252a38' : '#949cb4', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
+                  </div>
+                  {/* Speed */}
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 10, color: '#636b84', alignSelf: 'center', marginRight: 4 }}>Speed</span>
+                    {SPEEDS.map(s => (
+                      <button key={s} onClick={() => setSpeed(s)} style={{
+                        padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                        background: speed === s ? '#252a38' : 'none',
+                        color: speed === s ? '#bef264' : '#636b84',
+                        fontSize: 11, fontWeight: 700, fontFamily: '"IBM Plex Mono"',
+                      }}>{s === 0.5 ? '0.5×' : `${s}×`}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Replay timeline */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {replayIdx === 0 && (
+                    <div style={{ textAlign: 'center', padding: '20px 0', color: '#636b84' }}>
+                      <div style={{ fontSize: 13, marginBottom: 4 }}>Press ▶ to replay the match</div>
+                      <div style={{ fontSize: 11 }}>{total} shot{total !== 1 ? 's' : ''} recorded</div>
+                    </div>
+                  )}
+                  {match.sets.map((score, si) => {
+                    const sr = shown.filter(r => r.setIndex === si)
+                    if (!sr.length) return null
+                    const offset = match.rallies.filter(r => r.setIndex < si).length
+                    return (
+                      <div key={si}>
+                        <SetDivider setIndex={si} score={score} />
+                        {sr.map((r, i) => {
+                          const gi = offset + i
+                          const isNew = gi === replayIdx - 1
+                          return (
+                            <div key={r.id} ref={isNew ? lastRef : undefined} style={{ marginBottom: 5 }}>
+                              <RallyRow rally={r} index={gi} isNew={isNew} />
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })}
+                  {done && (
+                    <div style={{
+                      margin: '10px 0', padding: 16, borderRadius: 12, textAlign: 'center',
+                      background: isWin ? 'rgba(52,211,153,0.08)' : 'rgba(251,113,133,0.08)',
+                      border: `1px solid ${isWin ? 'rgba(52,211,153,0.25)' : 'rgba(251,113,133,0.25)'}`,
+                      animation: 'slideIn 0.4s ease-out',
+                    }}>
+                      <div style={{ fontSize: 28, marginBottom: 8 }}>{isWin ? '🏆' : '🎾'}</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: isWin ? '#34d399' : '#fb7185', marginBottom: 4 }}>Match Complete</div>
+                      <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 13, color: '#949cb4' }}>
+                        {match.sets.map(s => `${s[0]}–${s[1]}`).join('  ')}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ══════════ COACHING ══════════ */}
+        {activeView === 'coaching' && <CoachingTab rallies={match.rallies} />}
 
         {/* Notes */}
         {match.notes && (
-          <div style={{
-            marginTop: 14, background: '#0f1117', border: '1px solid #252a38',
-            borderRadius: 12, padding: '12px 14px',
-          }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
-              Notes
-            </div>
+          <div style={{ marginTop: 14, background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, padding: '12px 14px' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Notes</div>
             <div style={{ fontSize: 13, color: '#949cb4', lineHeight: 1.5 }}>{match.notes}</div>
           </div>
         )}
