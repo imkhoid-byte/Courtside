@@ -72,6 +72,179 @@ function SetDivider({ setIndex, score, count }: { setIndex: number; score: [numb
   )
 }
 
+// ─── Court Animation ──────────────────────────────────────────────────────────
+
+const TEAM_A_COLOR = '#60a5fa'  // blue
+const TEAM_B_COLOR = '#f97316'  // orange
+
+function CourtAnimation({ rally, animKey, match, speed }: {
+  rally: RallyEvent | null
+  animKey: number
+  match: Match
+  speed: Speed
+}) {
+  const W = 320, H = 162
+  const nx = W / 2
+  const [cx1, cy1, cx2, cy2] = [14, 12, W - 14, H - 12]
+
+  // Player positions: two per side, top & bottom
+  const pos = {
+    A1: { x: 56, y: 52 },
+    A2: { x: 56, y: H - 52 },
+    B1: { x: W - 56, y: 52 },
+    B2: { x: W - 56, y: H - 52 },
+  }
+
+  // Identify hitter
+  type PosKey = 'A1' | 'A2' | 'B1' | 'B2'
+  let hitter: PosKey | null = null
+  let isError = false
+  let ballPath = ''
+
+  if (rally) {
+    isError = rally.type !== 'winner' && rally.type !== 'ace'
+    if (rally.team === 'A') {
+      hitter = rally.player === match.teamA.player2 ? 'A2' : 'A1'
+    } else {
+      hitter = rally.player === match.teamB.player2 ? 'B2' : 'B1'
+    }
+
+    const start = pos[hitter]
+    let ex: number, ey: number, apexX: number, apexY: number
+
+    if (!isError) {
+      // Ball lands in opponent's half
+      if (rally.team === 'A') {
+        ex = W - 60; ey = hitter === 'A1' ? H - 58 : 58
+      } else {
+        ex = 60; ey = hitter === 'B1' ? H - 58 : 58
+      }
+      apexX = (start.x + ex) / 2
+      apexY = rally.shot === 'lob' ? 8 : rally.shot === 'smash' ? H / 2 : Math.min(start.y, ey) - 22
+    } else {
+      // Error: ball goes into net
+      ex = rally.team === 'A' ? nx - 6 : nx + 6
+      ey = H / 2
+      apexX = (start.x + ex) / 2
+      apexY = Math.min(start.y, ey) - 10
+    }
+
+    ballPath = `M ${start.x},${start.y} Q ${apexX},${apexY} ${ex},${ey}`
+  }
+
+  const ballFill = isError ? '#fb7185' : '#bef264'
+  const dur = `${Math.round((BASE_MS / speed) * 0.72)}ms`
+  // Label appears after ball arrives
+  const labelDelay = `${Math.round((BASE_MS / speed) * 0.68)}ms`
+
+  const outcomeLabel = rally
+    ? rally.type === 'ace' ? 'ACE'
+      : rally.type === 'winner' ? 'WINNER'
+      : rally.type === 'double_fault' ? 'DBL FAULT'
+      : 'ERROR'
+    : ''
+
+  function Player({ pk, name, team }: { pk: PosKey; name: string; team: 'A' | 'B' }) {
+    const p = pos[pk]
+    const isHitter = pk === hitter
+    const c = team === 'A' ? TEAM_A_COLOR : TEAM_B_COLOR
+    return (
+      <g>
+        {isHitter && (
+          <circle cx={p.x} cy={p.y} r={17} fill="none" stroke={c} strokeWidth={1.5} opacity={0}>
+            <animate attributeName="r" values="15;21;15" dur="0.55s" repeatCount="2" begin="0s" />
+            <animate attributeName="opacity" values="0.6;0.1;0.6" dur="0.55s" repeatCount="2" begin="0s" />
+          </circle>
+        )}
+        <circle cx={p.x} cy={p.y} r={13} fill={isHitter ? c : '#122318'} stroke={c} strokeWidth={isHitter ? 2 : 1} opacity={isHitter ? 1 : 0.55} />
+        <text x={p.x} y={p.y + 1} textAnchor="middle" dominantBaseline="middle"
+          fontSize={9} fontWeight="800" fill={isHitter ? '#08090d' : c} fontFamily='"DM Sans"'>
+          {(name || '?')[0].toUpperCase()}
+        </text>
+      </g>
+    )
+  }
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', borderRadius: 12, display: 'block', marginBottom: 10 }}>
+      <defs>
+        <filter id="ballGlow" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <filter id="labelGlow" x="-20%" y="-50%" width="140%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+
+      {/* Background */}
+      <rect width={W} height={H} fill="#07120d" rx={12} />
+      {/* Court surface */}
+      <rect x={cx1} y={cy1} width={cx2 - cx1} height={cy2 - cy1} fill="#0c2918" rx={3} />
+      {/* Outer court line */}
+      <rect x={cx1} y={cy1} width={cx2 - cx1} height={cy2 - cy1} fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth={1} rx={3} />
+      {/* Center horizontal */}
+      <line x1={cx1} y1={H / 2} x2={cx2} y2={H / 2} stroke="rgba(255,255,255,0.2)" strokeWidth={0.6} />
+      {/* Service box verticals */}
+      <line x1={nx - 68} y1={cy1} x2={nx - 68} y2={cy2} stroke="rgba(255,255,255,0.18)" strokeWidth={0.6} />
+      <line x1={nx + 68} y1={cy1} x2={nx + 68} y2={cy2} stroke="rgba(255,255,255,0.18)" strokeWidth={0.6} />
+      {/* Net */}
+      <line x1={nx} y1={cy1} x2={nx} y2={cy2} stroke="#ffffff" strokeWidth={2.5} />
+      <circle cx={nx} cy={cy1} r={2.5} fill="#fff" />
+      <circle cx={nx} cy={cy2} r={2.5} fill="#fff" />
+      {/* Glass wall tint */}
+      <rect x={cx1} y={cy1} width={11} height={cy2 - cy1} fill="rgba(147,197,253,0.05)" />
+      <rect x={cx2 - 11} y={cy1} width={11} height={cy2 - cy1} fill="rgba(147,197,253,0.05)" />
+
+      {/* Team labels */}
+      <text x={nx / 2 + cx1 / 2} y={cy1 - 2} textAnchor="middle" fontSize={6.5} fill={TEAM_A_COLOR} fontFamily='"DM Sans"' opacity={0.55}>
+        {[match.teamA.player1, match.teamA.player2].filter(Boolean).join(' & ')}
+      </text>
+      <text x={nx + (cx2 - nx) / 2} y={cy1 - 2} textAnchor="middle" fontSize={6.5} fill={TEAM_B_COLOR} fontFamily='"DM Sans"' opacity={0.55}>
+        {[match.teamB.player1, match.teamB.player2].filter(Boolean).join(' & ')}
+      </text>
+
+      {/* Players */}
+      <Player pk="A1" name={match.teamA.player1 || 'A'} team="A" />
+      {match.teamA.player2 && <Player pk="A2" name={match.teamA.player2} team="A" />}
+      <Player pk="B1" name={match.teamB.player1 || 'B'} team="B" />
+      {match.teamB.player2 && <Player pk="B2" name={match.teamB.player2} team="B" />}
+
+      {/* Ball + outcome label */}
+      {rally && ballPath && (
+        <g key={animKey}>
+          {/* Ball */}
+          <circle r={5} fill={ballFill} filter="url(#ballGlow)">
+            <animateMotion dur={dur} path={ballPath} fill="freeze" />
+          </circle>
+          {/* Outcome label fades in when ball arrives */}
+          <text
+            x={nx} y={H / 2 - 22}
+            textAnchor="middle" dominantBaseline="middle"
+            fontSize={12} fontWeight="900"
+            fill={isError ? '#fb7185' : '#bef264'}
+            fontFamily='"DM Sans"'
+            filter="url(#labelGlow)"
+            opacity={0}
+          >
+            {outcomeLabel}
+            <animate attributeName="opacity" values="0;1" dur="0.25s" begin={labelDelay} fill="freeze" />
+          </text>
+        </g>
+      )}
+
+      {/* Idle state hint */}
+      {!rally && (
+        <text x={nx} y={H / 2 + 1} textAnchor="middle" dominantBaseline="middle"
+          fontSize={10} fill="rgba(255,255,255,0.2)" fontFamily='"DM Sans"'>
+          Press Play
+        </text>
+      )}
+    </svg>
+  )
+}
+
 function EmptyShots() {
   return (
     <div style={{ textAlign: 'center', padding: '40px 0', color: '#636b84' }}>
@@ -427,6 +600,13 @@ export function MatchReplayPage() {
           <div>
             {total === 0 ? <EmptyShots /> : (
               <>
+                {/* Court animation */}
+                <CourtAnimation
+                  rally={replayIdx > 0 ? match.rallies[replayIdx - 1] : null}
+                  animKey={replayIdx}
+                  match={match}
+                  speed={speed}
+                />
                 {/* Scoreboard */}
                 <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, padding: '12px 14px', marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
