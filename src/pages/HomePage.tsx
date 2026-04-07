@@ -146,6 +146,7 @@ function MatchCard({ match, myName }: { match: Match; myName: string }) {
 export function HomePage() {
   const { myName } = useApp()
   const { t } = useI18n()
+  const navigate = useNavigate()
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -241,6 +242,31 @@ export function HomePage() {
           <StatCard label={t('acesMatch')} value={String(totalAces)} sub={`${acesPerMatch}/match`} color="#bef264" />
           <StatCard label={t('smashesMatch')} value={String(totalSmashes)} sub={`${smPerMatch}/match`} color="#38bdf8" />
         </div>
+      </div>
+
+      {/* Learn the Rules banner */}
+      <div
+        onClick={() => navigate('/rules')}
+        style={{
+          background: 'linear-gradient(135deg, rgba(190,242,100,0.06), rgba(96,165,250,0.06))',
+          border: '1px solid rgba(190,242,100,0.2)',
+          borderRadius: 14, padding: '14px 16px', marginBottom: 16,
+          display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
+        }}
+      >
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          background: 'rgba(190,242,100,0.1)', border: '1px solid rgba(190,242,100,0.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 22, flexShrink: 0,
+        }}>
+          🎓
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#e4e8f2' }}>Learn Padel Rules</div>
+          <div style={{ fontSize: 12, color: '#636b84' }}>Scoring, rules &amp; tips for beginners</div>
+        </div>
+        <span style={{ fontSize: 20, color: '#bef264', fontWeight: 700 }}>›</span>
       </div>
 
       <div style={{ marginTop: 20 }}>
