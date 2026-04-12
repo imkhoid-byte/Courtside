@@ -1,30 +1,14 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import { getCompletedMatches, getAllPlayerRatings } from '../lib/db'
 import type { Match, PlayerRating } from '../lib/types'
 import { useApp } from '../contexts/AppContext'
+import {
+  BarChart, Bar, XAxis, YAxis, ResponsiveContainer,
+  PieChart, Pie, Cell, Tooltip,
+  LineChart, Line,
+} from 'recharts'
 
-// Lazy load recharts
-const BarChart = lazy(() => import('recharts').then(m => ({ default: m.BarChart })))
-const Bar = lazy(() => import('recharts').then(m => ({ default: m.Bar })))
-const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })))
-const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })))
-const ResponsiveContainer = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })))
-const PieChart = lazy(() => import('recharts').then(m => ({ default: m.PieChart })))
-const Pie = lazy(() => import('recharts').then(m => ({ default: m.Pie })))
-const Cell = lazy(() => import('recharts').then(m => ({ default: m.Cell })))
-const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })))
-
-const DARK_CHART_STYLE = {
-  background: 'transparent',
-}
-
-function ChartSkeleton({ height = 180 }: { height?: number }) {
-  return (
-    <div style={{ height, background: '#161922', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ color: '#636b84', fontSize: 13 }}>Loading chart…</span>
-    </div>
-  )
-}
+const DARK_CHART_STYLE = { background: 'transparent' }
 
 function OverviewTab({ matches, myName }: { matches: Match[]; myName: string }) {
   const myMatches = matches.filter(m =>
@@ -79,17 +63,15 @@ function OverviewTab({ matches, myName }: { matches: Match[]; myName: string }) 
         {winLossData.length === 0 ? (
           <div style={{ color: '#636b84', fontSize: 13, padding: '24px 0', textAlign: 'center' }}>No match data</div>
         ) : (
-          <Suspense fallback={<ChartSkeleton />}>
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={winLossData} style={DARK_CHART_STYLE} barCategoryGap="30%">
-                <XAxis dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
-                <Bar dataKey="wins" fill="#34d399" radius={[4, 4, 0, 0]} name="Wins" />
-                <Bar dataKey="losses" fill="#fb7185" radius={[4, 4, 0, 0]} name="Losses" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Suspense>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={winLossData} style={DARK_CHART_STYLE} barCategoryGap="30%">
+              <XAxis dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis hide />
+              <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
+              <Bar dataKey="wins" fill="#34d399" radius={[4, 4, 0, 0]} name="Wins" />
+              <Bar dataKey="losses" fill="#fb7185" radius={[4, 4, 0, 0]} name="Losses" />
+            </BarChart>
+          </ResponsiveContainer>
         )}
       </div>
 
@@ -98,13 +80,11 @@ function OverviewTab({ matches, myName }: { matches: Match[]; myName: string }) 
         <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Points Breakdown</div>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <Suspense fallback={<ChartSkeleton height={120} />}>
-              <PieChart width={120} height={120}>
-                <Pie data={pieData} cx={55} cy={55} innerRadius={30} outerRadius={52} dataKey="value" paddingAngle={3}>
-                  {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Pie>
-              </PieChart>
-            </Suspense>
+            <PieChart width={120} height={120}>
+              <Pie data={pieData} cx={55} cy={55} innerRadius={30} outerRadius={52} dataKey="value" paddingAngle={3}>
+                {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
+              </Pie>
+            </PieChart>
             <div style={{ flex: 1 }}>
               {pieData.map(d => (
                 <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -183,32 +163,28 @@ function ShotAnalysisTab({ matches, myName }: { matches: Match[]; myName: string
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Shot Distribution</div>
-        <Suspense fallback={<ChartSkeleton height={200} />}>
-          <ResponsiveContainer width="100%" height={Math.max(160, shotData.length * 28)}>
-            <BarChart data={shotData} layout="vertical" style={DARK_CHART_STYLE}>
-              <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
-              <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
-              <Bar dataKey="value" fill="#bef264" radius={[0, 4, 4, 0]} name="Shots" />
-            </BarChart>
-          </ResponsiveContainer>
-        </Suspense>
+        <ResponsiveContainer width="100%" height={Math.max(160, shotData.length * 28)}>
+          <BarChart data={shotData} layout="vertical" style={DARK_CHART_STYLE}>
+            <XAxis type="number" hide />
+            <YAxis type="category" dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
+            <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
+            <Bar dataKey="value" fill="#bef264" radius={[0, 4, 4, 0]} name="Shots" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       {comparison.length > 0 && (
         <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Winners vs Errors by Shot</div>
-          <Suspense fallback={<ChartSkeleton />}>
-            <ResponsiveContainer width="100%" height={Math.max(140, comparison.length * 32)}>
-              <BarChart data={comparison} layout="vertical" style={DARK_CHART_STYLE}>
-                <XAxis type="number" hide />
-                <YAxis type="category" dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
-                <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
-                <Bar dataKey="winners" fill="#34d399" radius={[0, 4, 4, 0]} name="Winners" />
-                <Bar dataKey="errors" fill="#fb7185" radius={[0, 4, 4, 0]} name="Errors" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Suspense>
+          <ResponsiveContainer width="100%" height={Math.max(140, comparison.length * 32)}>
+            <BarChart data={comparison} layout="vertical" style={DARK_CHART_STYLE}>
+              <XAxis type="number" hide />
+              <YAxis type="category" dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
+              <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
+              <Bar dataKey="winners" fill="#34d399" radius={[0, 4, 4, 0]} name="Winners" />
+              <Bar dataKey="errors" fill="#fb7185" radius={[0, 4, 4, 0]} name="Errors" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       )}
     </div>
@@ -396,12 +372,6 @@ function PartnerChemistryTab({ matches, myName }: { matches: Match[]; myName: st
 function RankingsTab() {
   const [ratings, setRatings] = useState<PlayerRating[]>([])
   const [loading, setLoading] = useState(true)
-  const LineChart = lazy(() => import('recharts').then(m => ({ default: m.LineChart })))
-  const Line = lazy(() => import('recharts').then(m => ({ default: m.Line })))
-  const XAxis = lazy(() => import('recharts').then(m => ({ default: m.XAxis })))
-  const YAxis = lazy(() => import('recharts').then(m => ({ default: m.YAxis })))
-  const Tooltip = lazy(() => import('recharts').then(m => ({ default: m.Tooltip })))
-  const ResponsiveContainerLazy = lazy(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })))
 
   useEffect(() => {
     getAllPlayerRatings().then(r => { setRatings(r); setLoading(false) })
@@ -443,16 +413,14 @@ function RankingsTab() {
               </div>
             </div>
             {r.history.length > 1 && (
-              <Suspense fallback={null}>
-                <ResponsiveContainerLazy width="100%" height={40}>
-                  <LineChart data={r.history.slice(-10)}>
-                    <XAxis dataKey="date" hide />
-                    <YAxis domain={['auto', 'auto']} hide />
-                    <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 6, color: '#e4e8f2', fontSize: 11 }} />
-                    <Line type="monotone" dataKey="elo" stroke="#bef264" strokeWidth={1.5} dot={false} />
-                  </LineChart>
-                </ResponsiveContainerLazy>
-              </Suspense>
+              <ResponsiveContainer width="100%" height={40}>
+                <LineChart data={r.history.slice(-10)}>
+                  <XAxis dataKey="date" hide />
+                  <YAxis domain={['auto', 'auto']} hide />
+                  <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 6, color: '#e4e8f2', fontSize: 11 }} />
+                  <Line type="monotone" dataKey="elo" stroke="#bef264" strokeWidth={1.5} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
             )}
           </div>
         )
