@@ -477,11 +477,13 @@ export function AnalyticsPage() {
   const me = myName || 'You'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Tab bar */}
+    <div style={{ fontFamily: '"DM Sans"' }}>
+      {/* Sticky tab bar */}
       <div style={{
-        display: 'flex', gap: 0, overflowX: 'auto',
+        position: 'sticky', top: 0, zIndex: 10,
+        display: 'flex', overflowX: 'auto',
         borderBottom: '1px solid #252a38',
+        background: 'rgba(8,9,13,0.97)', backdropFilter: 'blur(10px)',
         padding: '0 16px',
         scrollbarWidth: 'none',
       }}>
@@ -496,7 +498,6 @@ export function AnalyticsPage() {
               cursor: 'pointer',
               color: activeTab === tab ? '#bef264' : '#636b84',
               fontSize: 13, fontWeight: 600, fontFamily: '"DM Sans"',
-              marginBottom: -1,
               transition: 'color 0.15s',
               whiteSpace: 'nowrap',
             }}
@@ -507,7 +508,7 @@ export function AnalyticsPage() {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 80px' }}>
+      <div style={{ padding: '16px 16px 96px' }}>
         {loading ? (
           <div style={{ padding: 32, textAlign: 'center', color: '#636b84' }}>Loading…</div>
         ) : (
