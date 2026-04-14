@@ -108,15 +108,19 @@ export function HistoryPage() {
   const me = myName || 'You'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Tab bar */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #252a38', flexShrink: 0 }}>
+    <div>
+      {/* Sticky tab bar */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 10,
+        display: 'flex', borderBottom: '1px solid #252a38',
+        background: 'rgba(8,9,13,0.97)', backdropFilter: 'blur(10px)',
+      }}>
         {(['matches', 'tournaments'] as const).map(tabKey => (
           <button key={tabKey} onClick={() => setTab(tabKey)} style={{
             flex: 1, padding: '12px', background: 'none', border: 'none',
             borderBottom: tab === tabKey ? '2px solid #bef264' : '2px solid transparent',
             color: tab === tabKey ? '#bef264' : '#636b84',
-            fontSize: 13, fontWeight: 600, cursor: 'pointer', marginBottom: -1,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer',
           }}>
             {tabKey === 'matches' ? `Matches (${matches.length})` : `Tournaments (${tournaments.length})`}
           </button>
@@ -124,7 +128,7 @@ export function HistoryPage() {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 80px' }}>
+      <div style={{ padding: '16px 16px 96px' }}>
         {loading ? (
           <div style={{ color: '#636b84', fontSize: 14, padding: 32, textAlign: 'center' }}>{t('loading')}</div>
         ) : tab === 'matches' ? (

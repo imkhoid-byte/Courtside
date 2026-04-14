@@ -1,5 +1,31 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Component } from 'react'
+import type { ReactNode, ErrorInfo } from 'react'
+
+// ─── Global error boundary — prevents any crash from showing a black screen ──
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null }
+  static getDerivedStateFromError(error: Error) { return { error } }
+  componentDidCatch(_error: Error, info: ErrorInfo) { console.error('App error:', info) }
+  render() {
+    if (this.state.error) {
+      const err = this.state.error as Error
+      return (
+        <div style={{ padding: 32, fontFamily: '"DM Sans"', background: '#08090d', minHeight: '100vh', color: '#e4e8f2' }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
+          <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>Something went wrong</div>
+          <div style={{ fontSize: 13, color: '#636b84', marginBottom: 24 }}>{err.message}</div>
+          <button
+            onClick={() => { this.setState({ error: null }); window.location.href = '/' }}
+            style={{ padding: '12px 24px', background: '#bef264', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: 'pointer', color: '#08090d' }}
+          >Go Home</button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 import { AppProvider } from './contexts/AppContext'
 import { ScoreProvider } from './contexts/ScoreContext'
 import { I18nProvider } from './contexts/I18nContext'
@@ -50,15 +76,19 @@ function AppRoutes() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <I18nProvider>
-        <AppProvider>
-          <ScoreProvider>
-            <AppRoutes />
-          </ScoreProvider>
-        </AppProvider>
-      </I18nProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <I18nProvider>
+          <AppProvider>
+            <ScoreProvider>
+              <ErrorBoundary>
+                <AppRoutes />
+              </ErrorBoundary>
+            </ScoreProvider>
+          </AppProvider>
+        </I18nProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }
 

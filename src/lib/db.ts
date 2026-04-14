@@ -112,6 +112,22 @@ export async function getCompletedMatches(): Promise<Match[]> {
     .sort((a, b) => b.startTime.localeCompare(a.startTime))
 }
 
+export async function deleteMatch(id: string): Promise<void> {
+  const db = await getDB()
+  await db.delete('matches', id)
+}
+
+export async function exportAllData(): Promise<string> {
+  const db = await getDB()
+  const [matches, tournaments, ratings, practices] = await Promise.all([
+    db.getAll('matches'),
+    db.getAll('tournaments'),
+    db.getAll('ratings'),
+    db.getAll('practices'),
+  ])
+  return JSON.stringify({ matches, tournaments, ratings, practices, exportedAt: new Date().toISOString(), version: 1 }, null, 2)
+}
+
 export async function clearAllData(): Promise<void> {
   const db = await getDB()
   await db.clear('matches')
