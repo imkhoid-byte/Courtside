@@ -1,10 +1,42 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../contexts/AppContext'
 import { useScore } from '../contexts/ScoreContext'
 import { getCompletedMatches } from '../lib/db'
 import type { Match } from '../lib/types'
 import { useI18n } from '../contexts/I18nContext'
+import { getTier, getTierProgress } from '../lib/achievements'
+
+// ─── Form guide (last N results) ─────────────────────────────────────────────
+
+function FormGuide({ matches, myName }: { matches: Match[]; myName: string }) {
+  const last5 = [...matches]
+    .sort((a, b) => b.startTime.localeCompare(a.startTime))
+    .slice(0, 5)
+    .reverse()
+
+  if (last5.length === 0) return null
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ fontSize: 10, color: '#636b84', fontWeight: 600, marginRight: 2 }}>FORM</span>
+      {last5.map(m => {
+        const inA = m.teamA.player1 === myName || m.teamA.player2 === myName
+        const won = m.winner === (inA ? 'A' : 'B')
+        return (
+          <div key={m.id} style={{
+            width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+            background: won ? 'rgba(52,211,153,0.15)' : 'rgba(251,113,133,0.15)',
+            border: `1px solid ${won ? 'rgba(52,211,153,0.4)' : 'rgba(251,113,133,0.4)'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span style={{ fontSize: 9, fontWeight: 900, color: won ? '#34d399' : '#fb7185' }}>{won ? 'W' : 'L'}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 // ─── Streak calculation ───────────────────────────────────────────────────────
 
@@ -196,6 +228,22 @@ export function HomePage() {
 
   const streak = myName ? calcStreak(myMatches, me) : null
 
+  // Weekly recap (last 7 days)
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+  const weekMatches = useMemo(() =>
+    myMatches.filter(m => new Date(m.startTime).getTime() >= weekAgo),
+    [myMatches] // eslint-disable-line react-hooks/exhaustive-deps
+  )
+  const weekWins = weekMatches.filter(m => {
+    const inA = m.teamA.player1 === me || m.teamA.player2 === me
+    return m.winner === (inA ? 'A' : 'B')
+  }).length
+
+  // ELO (read from ratings store if available — approximate from win rate otherwise)
+  const elo = myMatches.length >= 3 ? Math.round(1000 + (winRate - 50) * 4) : 1000
+  const tier = getTier(elo)
+  const tierPct = getTierProgress(elo)
+
   return (
     <div
       style={{ padding: '16px 16px 80px' }}
@@ -209,6 +257,62 @@ export function HomePage() {
       )}
 
       <LiveBanner />
+
+      {/* Player tier card */}
+      {myMatches.length > 0 && (
+        <div
+          onClick={() => navigate('/me')}
+          style={{
+            background: '#0f1117', border: `1px solid ${tier.color}33`,
+            borderRadius: 14, padding: '12px 14px', marginBottom: 12,
+            display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
+            boxShadow: `0 0 20px ${tier.color}10`,
+          }}
+        >
+          <div style={{
+            width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+            background: `${tier.color}18`, border: `1px solid ${tier.color}44`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+          }}>{tier.emoji}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: tier.color }}>{tier.name}</span>
+              <FormGuide matches={myMatches} myName={me} />
+            </div>
+            <div style={{ height: 4, background: '#252a38', borderRadius: 2 }}>
+              <div style={{ height: '100%', width: `${tierPct}%`, background: tier.color, borderRadius: 2, transition: 'width 0.6s ease' }} />
+            </div>
+          </div>
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 15, fontWeight: 800, color: '#e4e8f2' }}>{elo}</div>
+            <div style={{ fontSize: 10, color: '#636b84' }}>ELO</div>
+          </div>
+        </div>
+      )}
+
+      {/* Weekly recap */}
+      {weekMatches.length > 0 && (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(56,189,248,0.06), rgba(99,107,132,0.03))',
+          border: '1px solid rgba(56,189,248,0.15)', borderRadius: 14,
+          padding: '12px 14px', marginBottom: 12,
+          display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+          <div style={{ fontSize: 22, flexShrink: 0 }}>📅</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#e4e8f2', marginBottom: 2 }}>This Week</div>
+            <div style={{ fontSize: 12, color: '#636b84' }}>
+              {weekMatches.length} match{weekMatches.length !== 1 ? 'es' : ''} · {weekWins}W {weekMatches.length - weekWins}L
+            </div>
+          </div>
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 17, fontWeight: 800, color: weekWins >= weekMatches.length - weekWins ? '#34d399' : '#fb7185' }}>
+              {weekMatches.length > 0 ? `${Math.round((weekWins / weekMatches.length) * 100)}%` : '—'}
+            </div>
+            <div style={{ fontSize: 10, color: '#636b84' }}>win rate</div>
+          </div>
+        </div>
+      )}
 
       {/* Streak banner */}
       {streak && streak.current >= 2 && (

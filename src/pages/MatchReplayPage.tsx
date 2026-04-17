@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { getMatch } from '../lib/db'
 import { useApp } from '../contexts/AppContext'
 import type { Match, RallyEvent } from '../lib/types'
+import { generateMatchInsights } from '../lib/achievements'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -541,6 +542,32 @@ export function MatchReplayPage() {
             <span style={{ fontSize: 10, fontWeight: 700, color: '#949cb4' }}>{labelB}</span>
           </div>
         </div>
+
+        {/* ── Match Insights ── */}
+        {(() => {
+          const insights = generateMatchInsights(match, me)
+          if (insights.length === 0) return null
+          const sentColor = (s: string) => s === 'positive' ? '#34d399' : s === 'negative' ? '#fb7185' : '#949cb4'
+          const sentBg = (s: string) => s === 'positive' ? 'rgba(52,211,153,0.06)' : s === 'negative' ? 'rgba(251,113,133,0.06)' : 'rgba(148,156,180,0.06)'
+          return (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Match Insights</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {insights.map((ins, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    background: sentBg(ins.sentiment), border: `1px solid ${sentColor(ins.sentiment)}22`,
+                    borderLeft: `3px solid ${sentColor(ins.sentiment)}`,
+                    borderRadius: 10, padding: '10px 12px',
+                  }}>
+                    <span style={{ fontSize: 18, flexShrink: 0 }}>{ins.icon}</span>
+                    <span style={{ fontSize: 13, color: '#e4e8f2', lineHeight: 1.4 }}>{ins.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* ── Tab bar ── */}
         <div style={{ display: 'flex', background: '#0f1117', borderRadius: 10, padding: 3, marginBottom: 14, border: '1px solid #252a38' }}>
