@@ -41,6 +41,7 @@ import { OnboardingPage } from './pages/OnboardingPage'
 import { MatchReplayPage } from './pages/MatchReplayPage'
 import { RulesPage } from './pages/RulesPage'
 import { ProPage } from './pages/ProPage'
+import { PartyPage } from './pages/PartyPage'
 import { getPref } from './lib/db'
 
 function AppRoutes() {
@@ -71,6 +72,7 @@ function AppRoutes() {
         <Route path="/match/:id" element={<MatchReplayPage />} />
         <Route path="/rules" element={<RulesPage />} />
         <Route path="/pro" element={<ProPage />} />
+        <Route path="/party" element={<PartyPage />} />
       </Routes>
     </AppShell>
   )

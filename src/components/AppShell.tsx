@@ -7,6 +7,9 @@ import { useApp } from '../contexts/AppContext'
 import { NewMatchModal } from './NewMatchModal'
 import { useI18n } from '../contexts/I18nContext'
 
+const PARTY_PINK = '#f472b6'
+const PARTY_GRADIENT = 'linear-gradient(135deg, #f472b6, #a855f7)'
+
 interface AppShellProps {
   children: React.ReactNode
 }
@@ -31,11 +34,14 @@ function StatsIcon({ active }: { active: boolean }) {
   )
 }
 
-function HistoryIcon({ active }: { active: boolean }) {
+function PartyIcon({ active }: { active: boolean }) {
+  const { partyMode } = useApp()
+  const c = active ? PARTY_PINK : partyMode ? `${PARTY_PINK}88` : '#636b84'
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9" stroke={active ? '#bef264' : '#636b84'} strokeWidth="1.8"/>
-      <path d="M12 7v5l3 3" stroke={active ? '#bef264' : '#636b84'} strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M12 2L14.5 9H22L16 13.5L18.5 21L12 16.5L5.5 21L8 13.5L2 9H9.5L12 2Z"
+        fill={active || partyMode ? c : 'none'}
+        stroke={c} strokeWidth="1.6" strokeLinejoin="round"/>
     </svg>
   )
 }
@@ -53,7 +59,7 @@ const NAV_ITEMS = [
   { path: '/', key: 'home', icon: HomeIcon },
   { path: '/stats', key: 'stats', icon: StatsIcon },
   { path: null, key: 'fab', icon: null },
-  { path: '/history', key: 'history', icon: HistoryIcon },
+  { path: '/party', key: 'party', icon: PartyIcon },
   { path: '/me', key: 'profile', icon: ProfileIcon },
 ] as const
 
@@ -69,6 +75,7 @@ function FabMenu({ onClose }: { onClose: () => void }) {
     { emoji: '🏓', label: t('newLiveMatch'), action: () => { setNewMatchOpen(true); onClose() } },
     { emoji: '📝', label: t('logMatch'), action: () => { navigate('/log'); onClose() } },
     { emoji: '🏆', label: t('tournament'), action: () => { navigate('/tournament'); onClose() } },
+    { emoji: '📋', label: 'Match History', action: () => { navigate('/history'); onClose() } },
   ]
 
   useEffect(() => {
@@ -121,16 +128,16 @@ function FabMenu({ onClose }: { onClose: () => void }) {
 export function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { fabMenuOpen, setFabMenuOpen } = useApp()
+  const { fabMenuOpen, setFabMenuOpen, partyMode } = useApp()
   const { t } = useI18n()
 
   const isActive = (path: string | null) => path !== null && location.pathname === path
 
-  const navLabels: Record<string, () => string> = {
-    home: () => t('home'),
-    stats: () => t('stats'),
-    history: () => t('history'),
-    profile: () => t('profile'),
+  const navLabels: Record<string, string> = {
+    home: t('home'),
+    stats: t('stats'),
+    party: 'Party',
+    profile: t('profile'),
   }
 
   return (
@@ -142,20 +149,34 @@ export function AppShell({ children }: AppShellProps) {
         paddingLeft: `calc(env(safe-area-inset-left) + 20px)`,
         paddingRight: `calc(env(safe-area-inset-right) + 20px)`,
         background: '#08090d',
-        borderBottom: '1px solid #252a38',
-        flexShrink: 0,
-        zIndex: 10,
+        borderBottom: `1px solid ${partyMode ? 'rgba(244,114,182,0.2)' : '#252a38'}`,
+        flexShrink: 0, zIndex: 10,
+        position: 'relative',
       }}>
-        <Logo />
+        {/* Party mode glow strip */}
+        {partyMode && (
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+            background: PARTY_GRADIENT,
+          }} />
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Logo />
+          {partyMode && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              background: 'rgba(244,114,182,0.1)', border: '1px solid rgba(244,114,182,0.25)',
+              borderRadius: 20, padding: '4px 10px',
+            }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: PARTY_PINK, boxShadow: `0 0 6px ${PARTY_PINK}` }} className="pulse-live" />
+              <span style={{ fontSize: 10, fontWeight: 800, color: PARTY_PINK, letterSpacing: '0.06em' }}>PARTY ON</span>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Content */}
-      <main style={{
-        flex: 1,
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        WebkitOverflowScrolling: 'touch',
-      }}>
+      <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location.pathname}
@@ -177,27 +198,24 @@ export function AppShell({ children }: AppShellProps) {
         paddingLeft: `calc(env(safe-area-inset-left) + 4px)`,
         paddingRight: `calc(env(safe-area-inset-right) + 4px)`,
         background: '#0f1117',
-        borderTop: '1px solid #252a38',
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'space-around',
-        flexShrink: 0,
-        position: 'relative',
-        zIndex: 10,
+        borderTop: `1px solid ${partyMode ? 'rgba(244,114,182,0.15)' : '#252a38'}`,
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around',
+        flexShrink: 0, position: 'relative', zIndex: 10,
       }}>
         {NAV_ITEMS.map((item) => {
           if (item.path === null) {
-            // FAB
             return (
               <div key="fab" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 60 }}>
                 <button
                   onClick={() => { setFabMenuOpen(!fabMenuOpen); if (navigator.vibrate) navigator.vibrate(10) }}
                   style={{
                     width: 52, height: 52, borderRadius: '50%',
-                    background: fabMenuOpen ? '#e4e8f2' : '#bef264',
+                    background: fabMenuOpen ? '#e4e8f2' : partyMode ? PARTY_GRADIENT : '#bef264',
                     border: 'none', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 0 0 6px #0f1117, 0 4px 20px rgba(190,242,100,0.35)',
+                    boxShadow: fabMenuOpen ? 'none' : partyMode
+                      ? `0 0 0 6px #0f1117, 0 4px 20px rgba(244,114,182,0.4)`
+                      : `0 0 0 6px #0f1117, 0 4px 20px rgba(190,242,100,0.35)`,
                     position: 'absolute', bottom: 6,
                     transform: 'translateX(-50%)', left: '50%',
                     transition: 'background 0.15s, transform 0.15s',
@@ -218,6 +236,7 @@ export function AppShell({ children }: AppShellProps) {
 
           const Icon = item.icon
           const active = isActive(item.path)
+          const isParty = item.key === 'party'
           return (
             <button
               key={item.path}
@@ -232,23 +251,20 @@ export function AppShell({ children }: AppShellProps) {
               <Icon active={active} />
               <span style={{
                 fontSize: 10, fontWeight: 600,
-                color: active ? '#bef264' : '#636b84',
+                color: active
+                  ? (isParty ? PARTY_PINK : '#bef264')
+                  : isParty && partyMode ? `${PARTY_PINK}88` : '#636b84',
                 fontFamily: '"DM Sans"',
               }}>
-                {navLabels[item.key]?.() ?? item.key}
+                {navLabels[item.key] ?? item.key}
               </span>
             </button>
           )
         })}
       </nav>
 
-      {/* Toast container */}
       <ToastContainer />
-
-      {/* New Match Modal */}
       <NewMatchModal />
-
-      {/* FAB Menu overlay */}
       <AnimatePresence>
         {fabMenuOpen && <FabMenu onClose={() => setFabMenuOpen(false)} />}
       </AnimatePresence>

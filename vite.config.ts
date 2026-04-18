@@ -11,9 +11,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
-        name: 'SideCourt Padel',
-        short_name: 'SideCourt',
-        description: 'Your padel stats, every match',
+        name: 'Padel Party',
+        short_name: 'PadelParty',
+        description: 'Padel + Party = Perfect. Track scores and drinking game rules.',
         theme_color: '#08090d',
         background_color: '#08090d',
         display: 'standalone',

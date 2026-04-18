@@ -6,6 +6,7 @@ import { useI18n } from '../contexts/I18nContext'
 import type { TeamPlayer, RallyEvent } from '../lib/types'
 import { displayPoints, getAdvantage, isDeuce, isGoldenPoint } from '../lib/padel'
 import { useNavigate } from 'react-router-dom'
+import type { DrinkEvent } from '../lib/party'
 
 // ─── Voice Commands ───────────────────────────────────────────────────────────
 
@@ -449,11 +450,68 @@ function PlayerSelector({
   )
 }
 
+// ─── Drink overlay ────────────────────────────────────────────────────────────
+
+function DrinkOverlay({ event, onDismiss }: { event: DrinkEvent; onDismiss: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDismiss, 3200)
+    return () => clearTimeout(t)
+  }, [onDismiss])
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onDismiss}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 300,
+        background: 'rgba(8,9,13,0.93)',
+        backdropFilter: 'blur(16px)',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', padding: 32,
+      }}
+    >
+      <motion.div
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 280, damping: 20 }}
+        style={{ textAlign: 'center', maxWidth: 300 }}
+      >
+        <div style={{ fontSize: 72, marginBottom: 12, lineHeight: 1 }}>{event.emoji}</div>
+        <div style={{
+          fontSize: 13, fontWeight: 700, color: '#f472b6',
+          textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8,
+        }}>
+          {event.reason}
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 900, color: '#e4e8f2', marginBottom: 8, lineHeight: 1.3 }}>
+          {event.players.join(' & ')}
+        </div>
+        <div style={{
+          display: 'inline-block',
+          background: event.isFinish
+            ? 'linear-gradient(135deg, #f472b6, #a855f7)'
+            : 'rgba(244,114,182,0.12)',
+          border: event.isFinish ? 'none' : '1px solid rgba(244,114,182,0.3)',
+          borderRadius: 14, padding: '10px 24px', marginBottom: 20,
+        }}>
+          <span style={{ fontSize: 20, fontWeight: 900, color: event.isFinish ? '#fff' : '#f472b6' }}>
+            {event.isFinish ? '🥂 FINISH YOUR DRINK!' : `🍺 ${event.sips} SIP${event.sips !== 1 ? 'S' : ''}!`}
+          </span>
+        </div>
+        <div style={{ fontSize: 12, color: '#636b84' }}>Tap anywhere to dismiss</div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 // ─── Main Score Page ─────────────────────────────────────────────────────────
 
 export function ScorePage() {
   const { state, history, addPoint, undo, endMatch, addRally, currentMatch, clearMatch } = useScore()
-  const { showToast, setNewMatchOpen } = useApp()
+  const { showToast, setNewMatchOpen, partyMode, partyRules, addDrinks } = useApp()
   const { t, language } = useI18n()
   const navigate = useNavigate()
   const [flashingBtn, setFlashingBtn] = useState<number | null>(null)
@@ -463,6 +521,94 @@ export function ScorePage() {
   const [selectedPlayer, setSelectedPlayer] = useState<string>('')
   const [scorekeeperMode, setScorekeeperMode] = useState(state?.scorekeeperMode ?? false)
   const prevStatusRef = useRef<string | null>(null)
+
+  // Party — drink event queue
+  const [drinkQueue, setDrinkQueue] = useState<DrinkEvent[]>([])
+  const pushDrink = useCallback((e: DrinkEvent) => {
+    setDrinkQueue(q => [...q, e])
+    e.players.forEach(p => addDrinks(p, e.isFinish ? 3 : e.sips))
+  }, [addDrinks])
+  const shiftDrink = useCallback(() => setDrinkQueue(q => q.slice(1)), [])
+
+  // Snapshot for detecting game/set/rally changes
+  const snapRef = useRef<{ sets: number; csA: number; csB: number; ralliesLen: number } | null>(null)
+
+  useEffect(() => {
+    if (!state) { snapRef.current = null; return }
+    const sets = state.sets.length
+    const csA = state.currentSet[0]
+    const csB = state.currentSet[1]
+    const ralliesLen = currentMatch?.rallies?.length ?? 0
+    const prev = snapRef.current
+    snapRef.current = { sets, csA, csB, ralliesLen }
+
+    if (!partyMode || !prev) return
+
+    // Rally-based events (ace, double fault, etc.)
+    if (ralliesLen > prev.ralliesLen && currentMatch?.rallies?.length) {
+      const rally = currentMatch.rallies[currentMatch.rallies.length - 1]
+      const hitterTeam = rally.team
+      const oppTeam = hitterTeam === 'A' ? 'B' : 'A'
+      const oppPlayers = oppTeam === 'A'
+        ? [state.teamA.player1, state.teamA.player2].filter(Boolean)
+        : [state.teamB.player1, state.teamB.player2].filter(Boolean)
+
+      for (const rule of partyRules.filter(r => r.enabled)) {
+        let match = false
+        let drinkers: string[] = []
+        if (rule.id === 'double_fault' && rally.type === 'double_fault') {
+          match = true; drinkers = [rally.player]
+        } else if (rule.id === 'ace' && rally.type === 'ace') {
+          match = true; drinkers = oppPlayers
+        } else if (rule.id === 'unforced_error' && rally.type === 'unforced_error') {
+          match = true; drinkers = [rally.player]
+        } else if (rule.id === 'smash_winner' && rally.type === 'winner' && rally.shot === 'smash') {
+          match = true; drinkers = oppPlayers
+        } else if (rule.id === 'lob_winner' && rally.type === 'winner' && rally.shot === 'lob') {
+          match = true; drinkers = oppPlayers
+        } else if (rule.id === 'wall_shot' && rally.type === 'winner' && rally.shot === 'wall_shot') {
+          match = true; drinkers = oppPlayers
+        } else if (rule.id === 'vibora_winner' && rally.type === 'winner' && rally.shot === 'vibora') {
+          match = true; drinkers = oppPlayers
+        }
+        if (match && drinkers.length > 0) {
+          pushDrink({ players: drinkers, sips: rule.sips, reason: rule.label, emoji: rule.emoji, isFinish: rule.isFinish })
+        }
+      }
+    }
+
+    // Set completed
+    if (sets > prev.sets && state.sets.length > 0) {
+      const completedSet = state.sets[state.sets.length - 1]
+      const teamAWon = completedSet[0] > completedSet[1]
+      const loserTeam = teamAWon ? 'B' : 'A'
+      const losers = loserTeam === 'A'
+        ? [state.teamA.player1, state.teamA.player2].filter(Boolean)
+        : [state.teamB.player1, state.teamB.player2].filter(Boolean)
+
+      const loseSetRule = partyRules.find(r => r.id === 'lose_set' && r.enabled)
+      if (loseSetRule) {
+        pushDrink({ players: losers, sips: 0, reason: `Lost set ${completedSet[0]}-${completedSet[1]}`, emoji: loseSetRule.emoji, isFinish: true })
+      }
+      const bagelRule = partyRules.find(r => r.id === 'bagel_set' && r.enabled)
+      const loserScore = teamAWon ? completedSet[1] : completedSet[0]
+      if (bagelRule && loserScore === 0) {
+        pushDrink({ players: losers, sips: 0, reason: '6-0 Bagel!', emoji: bagelRule.emoji, isFinish: true })
+      }
+    }
+    // Game completed (sets unchanged, but total games in current set increased)
+    else if (sets === prev.sets && csA + csB > prev.csA + prev.csB) {
+      const teamAWon = csA > prev.csA
+      const loserTeam = teamAWon ? 'B' : 'A'
+      const losers = loserTeam === 'A'
+        ? [state.teamA.player1, state.teamA.player2].filter(Boolean)
+        : [state.teamB.player1, state.teamB.player2].filter(Boolean)
+      const loseGameRule = partyRules.find(r => r.id === 'lose_game' && r.enabled)
+      if (loseGameRule) {
+        pushDrink({ players: losers, sips: loseGameRule.sips, reason: loseGameRule.label, emoji: loseGameRule.emoji })
+      }
+    }
+  }, [state?.sets.length, state?.currentSet[0], state?.currentSet[1], currentMatch?.rallies?.length, partyMode, partyRules, pushDrink, state, currentMatch])
 
   // Match timer
   const elapsedStr = useMatchTimer(currentMatch?.startTime)
@@ -700,6 +846,9 @@ export function ScorePage() {
             <MatchCompleteOverlay onDone={() => { setShowComplete(false); clearMatch(); navigate('/') }} onRematch={handleRematch} />
           )}
         </AnimatePresence>
+        <AnimatePresence>
+          {drinkQueue[0] && <DrinkOverlay event={drinkQueue[0]} onDismiss={shiftDrink} />}
+        </AnimatePresence>
       </div>
     )
   }
@@ -894,6 +1043,11 @@ export function ScorePage() {
             onRematch={handleRematch}
           />
         )}
+      </AnimatePresence>
+
+      {/* Party drink overlay */}
+      <AnimatePresence>
+        {drinkQueue[0] && <DrinkOverlay event={drinkQueue[0]} onDismiss={shiftDrink} />}
       </AnimatePresence>
     </div>
   )
