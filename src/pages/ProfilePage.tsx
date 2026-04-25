@@ -343,7 +343,7 @@ export function ProfilePage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
         }}>⚡</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: '#fbbf24', marginBottom: 2 }}>SideCourt Pro</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#fbbf24', marginBottom: 2 }}>Padel Party Pro</div>
           <div style={{ fontSize: 12, color: '#636b84' }}>Advanced analytics, insights & more</div>
         </div>
         <div style={{ fontSize: 13, fontWeight: 800, color: '#fbbf24', textAlign: 'right', flexShrink: 0 }}>

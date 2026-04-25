@@ -120,7 +120,7 @@ function useMatchTimer(startTime?: string) {
 
 function generateShareText(winPair: string, losePair: string, sets: [number, number][], stats: { aces: number; smashes: number; winners: number }, venue?: string): string {
   return [
-    '🏆 SideCourt Match Result',
+    '🎉 Padel Party Match Result',
     '━━━━━━━━━━━━━━━━━',
     `${winPair}  🏆  def.  ${losePair}`,
     sets.map(s => `${s[0]}-${s[1]}`).join('  '),
@@ -128,7 +128,7 @@ function generateShareText(winPair: string, losePair: string, sets: [number, num
     `🔥 Aces: ${stats.aces}  💣 Smashes: ${stats.smashes}  💥 Winners: ${stats.winners}`,
     venue ? `📍 ${venue}` : '',
     '━━━━━━━━━━━━━━━━━',
-    'sidecourt.app',
+    '#PadelParty',
   ].filter(Boolean).join('\n')
 }
 
@@ -144,15 +144,21 @@ async function generateShareImage(text: string): Promise<Blob | null> {
     ctx.fillStyle = '#08090d'
     ctx.fillRect(0, 0, 1080, 1920)
 
-    // Lime accent bar
-    ctx.fillStyle = '#bef264'
+    // Pink accent bar
+    const accentGrad = ctx.createLinearGradient(80, 0, 1000, 0)
+    accentGrad.addColorStop(0, '#f472b6')
+    accentGrad.addColorStop(1, '#a855f7')
+    ctx.fillStyle = accentGrad
     ctx.fillRect(80, 200, 920, 8)
 
     // Title
-    ctx.fillStyle = '#bef264'
+    const titleGrad = ctx.createLinearGradient(380, 0, 700, 0)
+    titleGrad.addColorStop(0, '#f472b6')
+    titleGrad.addColorStop(1, '#a855f7')
+    ctx.fillStyle = titleGrad
     ctx.font = 'bold 64px sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('SideCourt', 540, 160)
+    ctx.fillText('Padel Party', 540, 160)
 
     // Content
     ctx.fillStyle = '#e4e8f2'
@@ -163,7 +169,7 @@ async function generateShareImage(text: string): Promise<Blob | null> {
         ctx.fillStyle = '#252a38'
         ctx.fillRect(80, 260 + i * 80 - 10, 920, 2)
       } else {
-        ctx.fillStyle = line.startsWith('🏆') ? '#bef264' : '#e4e8f2'
+        ctx.fillStyle = line.startsWith('🏆') ? '#f472b6' : '#e4e8f2'
         ctx.fillText(line, 540, 300 + i * 80)
       }
     })
@@ -171,7 +177,7 @@ async function generateShareImage(text: string): Promise<Blob | null> {
     // Footer
     ctx.fillStyle = '#636b84'
     ctx.font = '36px sans-serif'
-    ctx.fillText('sidecourt.app', 540, 1820)
+    ctx.fillText('#PadelParty', 540, 1820)
 
     return new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
   } catch {
@@ -336,8 +342,8 @@ function MatchCompleteOverlay({ onDone, onRematch }: { onDone: () => void; onRem
   const handleShare = async () => {
     const blob = await generateShareImage(shareText)
     if (navigator.share) {
-      const files = blob ? [new File([blob], 'sidecourt-result.png', { type: 'image/png' })] : []
-      const shareData: ShareData = { text: shareText, title: 'SideCourt Match Result' }
+      const files = blob ? [new File([blob], 'padelparty-result.png', { type: 'image/png' })] : []
+      const shareData: ShareData = { text: shareText, title: 'Padel Party Match Result' }
       if (files.length && navigator.canShare?.({ files })) shareData.files = files
       navigator.share(shareData).catch(() => navigator.clipboard?.writeText(shareText))
     } else if (navigator.clipboard) {
@@ -511,13 +517,12 @@ function DrinkOverlay({ event, onDismiss }: { event: DrinkEvent; onDismiss: () =
 
 export function ScorePage() {
   const { state, history, addPoint, undo, endMatch, addRally, currentMatch, clearMatch } = useScore()
-  const { showToast, setNewMatchOpen, partyMode, partyRules, addDrinks } = useApp()
+  const { showToast, setNewMatchOpen, partyMode, partyRules, addDrinks, drinkCounts, resetDrinks } = useApp()
   const { t, language } = useI18n()
   const navigate = useNavigate()
   const [flashingBtn, setFlashingBtn] = useState<number | null>(null)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [showComplete, setShowComplete] = useState(false)
-  const [pendingShot, setPendingShot] = useState<{ btn: ShotBtn; idx: number } | null>(null)
   const [selectedPlayer, setSelectedPlayer] = useState<string>('')
   const [scorekeeperMode, setScorekeeperMode] = useState(state?.scorekeeperMode ?? false)
   const prevStatusRef = useRef<string | null>(null)
@@ -638,32 +643,48 @@ export function ScorePage() {
       addPoint(opp)
       showToast('❌ Double Fault')
     } else if (/\b(smash|remate)\b/.test(cmd)) {
-      addRally({ type: 'winner', shot: 'smash', player: state.serverOrder[state.serverIndex], team: 'A' })
-      addPoint('A')
+      const player = state.serverOrder[state.serverIndex]
+      const team: 'A' | 'B' = (player === state.teamA.player1 || player === state.teamA.player2) ? 'A' : 'B'
+      addRally({ type: 'winner', shot: 'smash', player, team })
+      addPoint(team)
       showToast('💣 Smash!')
     } else if (/\b(bajada)\b/.test(cmd)) {
-      addRally({ type: 'winner', shot: 'bajada', player: state.serverOrder[state.serverIndex], team: 'A' })
-      addPoint('A')
+      const player = state.serverOrder[state.serverIndex]
+      const team: 'A' | 'B' = (player === state.teamA.player1 || player === state.teamA.player2) ? 'A' : 'B'
+      addRally({ type: 'winner', shot: 'bajada', player, team })
+      addPoint(team)
       showToast('🪃 Bajada!')
     } else if (/\b(vibora|víbora)\b/.test(cmd)) {
-      addRally({ type: 'winner', shot: 'vibora', player: state.serverOrder[state.serverIndex], team: 'A' })
-      addPoint('A')
+      const player = state.serverOrder[state.serverIndex]
+      const team: 'A' | 'B' = (player === state.teamA.player1 || player === state.teamA.player2) ? 'A' : 'B'
+      addRally({ type: 'winner', shot: 'vibora', player, team })
+      addPoint(team)
       showToast('🌀 Vibora!')
     } else if (/\b(lob|globo)\b/.test(cmd)) {
-      addRally({ type: 'winner', shot: 'lob', player: state.serverOrder[state.serverIndex], team: 'A' })
-      addPoint('A')
+      const player = state.serverOrder[state.serverIndex]
+      const team: 'A' | 'B' = (player === state.teamA.player1 || player === state.teamA.player2) ? 'A' : 'B'
+      addRally({ type: 'winner', shot: 'lob', player, team })
+      addPoint(team)
       showToast('🪶 Lob!')
     } else if (/\b(winner|ganador)\b/.test(cmd)) {
-      addRally({ type: 'winner', shot: 'forehand', player: state.serverOrder[state.serverIndex], team: 'A' })
-      addPoint('A')
+      const player = state.serverOrder[state.serverIndex]
+      const team: 'A' | 'B' = (player === state.teamA.player1 || player === state.teamA.player2) ? 'A' : 'B'
+      addRally({ type: 'winner', shot: 'forehand', player, team })
+      addPoint(team)
       showToast('💥 Winner!')
     } else if (/\b(error|fallo)\b/.test(cmd)) {
-      addRally({ type: 'unforced_error', shot: 'forehand', player: state.serverOrder[state.serverIndex], team: 'A' })
-      addPoint('B')
+      const player = state.serverOrder[state.serverIndex]
+      const team: 'A' | 'B' = (player === state.teamA.player1 || player === state.teamA.player2) ? 'A' : 'B'
+      const opp: 'A' | 'B' = team === 'A' ? 'B' : 'A'
+      addRally({ type: 'unforced_error', shot: 'forehand', player, team })
+      addPoint(opp)
       showToast('😬 Error → point them')
     } else if (/\b(their error|su error|their fault)\b/.test(cmd)) {
-      addRally({ type: 'unforced_error', shot: 'forehand', player: state.serverOrder[state.serverIndex], team: 'B' })
-      addPoint('A')
+      const player = state.serverOrder[state.serverIndex]
+      const team: 'A' | 'B' = (player === state.teamA.player1 || player === state.teamA.player2) ? 'A' : 'B'
+      const opp: 'A' | 'B' = team === 'A' ? 'B' : 'A'
+      addRally({ type: 'unforced_error', shot: 'forehand', player, team: opp })
+      addPoint(team)
       showToast('😬 Their error → point us')
     }
   }, [state, addPoint, undo, addRally, showToast])
@@ -692,22 +713,15 @@ export function ScorePage() {
 
   const handleShotBtnTap = useCallback((btn: ShotBtn, idx: number) => {
     if (!state) return
-    setPendingShot({ btn, idx })
-    setSelectedPlayer(state.serverOrder[state.serverIndex])
-  }, [state])
-
-  const confirmShot = useCallback(() => {
-    if (!pendingShot || !state) return
-    const { btn } = pendingShot
     const team: TeamPlayer = (
       state.teamA.player1 === selectedPlayer || state.teamA.player2 === selectedPlayer
     ) ? 'A' : 'B'
     addRally({ type: btn.type, shot: btn.shot, player: selectedPlayer, team })
     showToast(toastMsg(btn))
-    setFlashingBtn(pendingShot.idx)
-    setPendingShot(null)
+    setFlashingBtn(idx)
+    if (navigator.vibrate) navigator.vibrate(30)
     setTimeout(() => setFlashingBtn(null), 220)
-  }, [pendingShot, state, selectedPlayer, addRally, showToast])
+  }, [state, selectedPlayer, addRally, showToast])
 
   const handleEndMatch = () => {
     if (!state) return
@@ -928,10 +942,50 @@ export function ScorePage() {
         </div>
       </div>
 
+      {/* Party Panel — visible when partyMode is on */}
+      {partyMode && (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(244,114,182,0.12), rgba(168,85,247,0.12))',
+          border: '1px solid rgba(244,114,182,0.35)',
+          borderRadius: 14, padding: '10px 14px', marginBottom: 12,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#f472b6', textTransform: 'uppercase', letterSpacing: '0.07em' }}>🎉 Party Mode</span>
+            <button onClick={resetDrinks} style={{ fontSize: 10, color: '#636b84', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>Reset</button>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {allPlayers.map(p => {
+              const sips = drinkCounts[p.name] ?? 0
+              return (
+                <div key={p.name} style={{
+                  flex: '1 1 calc(50% - 4px)', minWidth: 100,
+                  background: 'rgba(0,0,0,0.25)', borderRadius: 10, padding: '8px 10px',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                }}>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: p.team === 'A' ? '#38bdf8' : '#fb7185' }}>{p.name.split(' ')[0]}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: '#e4e8f2' }}>{sips}<span style={{ fontSize: 10, color: '#636b84', fontWeight: 400, marginLeft: 3 }}>sips</span></div>
+                  </div>
+                  <button
+                    onClick={() => addDrinks(p.name, 1)}
+                    style={{ width: 28, height: 28, borderRadius: 14, background: 'rgba(244,114,182,0.2)', border: '1px solid rgba(244,114,182,0.4)', color: '#f472b6', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}
+                  >+</button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Shot Tracker */}
       <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 14, marginBottom: 12 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
           Shot Tracker
+        </div>
+        {/* Inline player selector — tap shot = instant log */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 10, color: '#636b84', marginBottom: 5, fontWeight: 600 }}>Who hit it?</div>
+          <PlayerSelector players={allPlayers} selected={selectedPlayer} onSelect={(name) => setSelectedPlayer(name)} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
           {SHOT_BTNS.map((row, ri) => (
@@ -975,37 +1029,6 @@ export function ScorePage() {
           </div>
         )}
       </div>
-
-      {/* Player selector modal */}
-      <AnimatePresence>
-        {pendingShot && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setPendingShot(null)}
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 150, backdropFilter: 'blur(3px)' }} />
-            <motion.div
-              initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }}
-              style={{
-                position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)',
-                background: '#0f1117', border: '1px solid #252a38', borderRadius: 16,
-                padding: '20px', zIndex: 151, width: '85%', maxWidth: 320,
-              }}
-            >
-              <div style={{ fontSize: 16, fontWeight: 800, color: '#e4e8f2', textAlign: 'center', marginBottom: 4 }}>
-                {pendingShot.btn.emoji} {pendingShot.btn.label}
-              </div>
-              <div style={{ fontSize: 12, color: '#636b84', textAlign: 'center', marginBottom: 14 }}>Who hit it?</div>
-              <PlayerSelector players={allPlayers} selected={selectedPlayer} onSelect={(name) => setSelectedPlayer(name)} />
-              <button
-                onClick={confirmShot}
-                style={{ width: '100%', marginTop: 14, padding: '13px', background: '#bef264', border: 'none', borderRadius: 10, cursor: 'pointer', color: '#08090d', fontSize: 14, fontWeight: 800 }}
-              >
-                Log Shot
-              </button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
 
       {/* End match confirm */}
       <AnimatePresence>

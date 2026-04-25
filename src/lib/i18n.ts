@@ -98,8 +98,8 @@ export const translations = {
     resetData: 'Reset All Data',
     resetConfirm: 'Are you sure? This cannot be undone.',
     // Onboarding
-    welcomeTitle: 'Welcome to SideCourt',
-    welcomeTagline: 'Your padel stats, every match',
+    welcomeTitle: 'Welcome to Padel Party',
+    welcomeTagline: 'Score matches · track stats · party rules',
     howTrack: 'How do you track?',
     postMatchTitle: 'Post-Match Log',
     postMatchDesc: 'Log the result after the game — fast, clean, takes 30 seconds',
@@ -236,8 +236,8 @@ export const translations = {
     resetData: 'Borrar todos los datos',
     resetConfirm: '¿Estás seguro? No se puede deshacer.',
     // Onboarding
-    welcomeTitle: 'Bienvenido a SideCourt',
-    welcomeTagline: 'Tus estadísticas de pádel, en cada partido',
+    welcomeTitle: 'Bienvenido a Padel Party',
+    welcomeTagline: 'Puntúa partidos · estadísticas · modo fiesta',
     howTrack: '¿Cómo quieres registrar?',
     postMatchTitle: 'Registro Post-Partido',
     postMatchDesc: 'Registra el resultado después del partido — rápido, en 30 segundos',

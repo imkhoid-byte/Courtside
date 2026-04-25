@@ -176,7 +176,7 @@ function MatchCard({ match, myName }: { match: Match; myName: string }) {
 // ─── Home Page ────────────────────────────────────────────────────────────────
 
 export function HomePage() {
-  const { myName } = useApp()
+  const { myName, setNewMatchOpen } = useApp()
   const { t } = useI18n()
   const navigate = useNavigate()
   const [matches, setMatches] = useState<Match[]>([])
@@ -378,10 +378,24 @@ export function HomePage() {
         {loading ? (
           <div style={{ color: '#636b84', fontSize: 14, padding: 16, textAlign: 'center' }}>{t('loading')}</div>
         ) : myMatches.length === 0 ? (
-          <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 32, textAlign: 'center' }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>🎾</div>
-            <div style={{ color: '#636b84', fontSize: 14 }}>{t('noMatches')}</div>
-            <div style={{ color: '#636b84', fontSize: 12, marginTop: 4 }}>{t('startFirst')}</div>
+          <div style={{ background: 'linear-gradient(135deg, rgba(190,242,100,0.06), rgba(56,189,248,0.06))', border: '1px solid #252a38', borderRadius: 14, padding: '28px 20px', textAlign: 'center' }}>
+            <div style={{ fontSize: 40, marginBottom: 10 }}>🎾</div>
+            <div style={{ color: '#e4e8f2', fontSize: 16, fontWeight: 800, marginBottom: 6 }}>No matches yet</div>
+            <div style={{ color: '#636b84', fontSize: 13, marginBottom: 20, lineHeight: 1.5 }}>Track your first match — live during a game or log it after.</div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setNewMatchOpen(true)}
+                style={{ padding: '12px 20px', background: '#bef264', border: 'none', borderRadius: 10, cursor: 'pointer', color: '#08090d', fontSize: 13, fontWeight: 800 }}
+              >
+                ▶ Live Match
+              </button>
+              <button
+                onClick={() => navigate('/log')}
+                style={{ padding: '12px 20px', background: '#161922', border: '1px solid #252a38', borderRadius: 10, cursor: 'pointer', color: '#e4e8f2', fontSize: 13, fontWeight: 700 }}
+              >
+                📋 Log Result
+              </button>
+            </div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

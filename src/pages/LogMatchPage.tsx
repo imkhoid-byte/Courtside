@@ -324,8 +324,11 @@ export function LogMatchPage() {
 
     setSaving(true)
 
-    const startTime = new Date(matchDate + 'T12:00:00').toISOString()
-    const endTime = new Date(matchDate + 'T13:30:00').toISOString()
+    const now = new Date()
+    const dateBase = new Date(matchDate)
+    dateBase.setHours(now.getHours(), now.getMinutes(), 0, 0)
+    const startTime = dateBase.toISOString()
+    const endTime = startTime
 
     const match: Match = {
       id: nanoid(),
