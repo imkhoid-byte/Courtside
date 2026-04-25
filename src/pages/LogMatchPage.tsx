@@ -55,15 +55,15 @@ function AutoInput({
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder={placeholder}
         style={{
-          width: '100%', background: '#161922', border: '1px solid #252a38',
-          borderRadius: 10, padding: '11px 14px', color: '#e4e8f2',
+          width: '100%', background: '#131428', border: '1px solid #252a38',
+          borderRadius: 10, padding: '11px 14px', color: '#eeeeff',
           fontSize: 15, fontFamily: '"DM Sans"', outline: 'none', boxSizing: 'border-box',
         }}
       />
       {open && localSuggestions.length > 0 && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-          background: '#161922', border: '1px solid #252a38', borderRadius: 10,
+          background: '#131428', border: '1px solid #252a38', borderRadius: 10,
           marginTop: 4, overflow: 'hidden',
         }}>
           {localSuggestions.map(s => (
@@ -77,9 +77,9 @@ function AutoInput({
                 borderBottom: '1px solid #1a1f2e',
               }}
             >
-              <span style={{ color: '#e4e8f2', fontSize: 14, fontFamily: '"DM Sans"' }}>{s.name}</span>
+              <span style={{ color: '#eeeeff', fontSize: 14, fontFamily: '"DM Sans"' }}>{s.name}</span>
               {showStats && s.matchCount > 0 && (
-                <span style={{ color: '#636b84', fontSize: 11 }}>
+                <span style={{ color: '#7878a8', fontSize: 11 }}>
                   {s.matchCount}M · {s.matchCount > 0 ? Math.round((s.winCount / s.matchCount) * 100) : 0}%
                 </span>
               )}
@@ -110,15 +110,15 @@ function VenueInput({ value, onChange, placeholder }: {
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder={placeholder}
         style={{
-          width: '100%', background: '#161922', border: '1px solid #252a38',
-          borderRadius: 10, padding: '11px 14px', color: '#e4e8f2',
+          width: '100%', background: '#131428', border: '1px solid #252a38',
+          borderRadius: 10, padding: '11px 14px', color: '#eeeeff',
           fontSize: 15, fontFamily: '"DM Sans"', outline: 'none', boxSizing: 'border-box',
         }}
       />
       {open && filtered.length > 0 && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-          background: '#161922', border: '1px solid #252a38', borderRadius: 10,
+          background: '#131428', border: '1px solid #252a38', borderRadius: 10,
           marginTop: 4, overflow: 'hidden',
         }}>
           {filtered.slice(0, 5).map(v => (
@@ -128,7 +128,7 @@ function VenueInput({ value, onChange, placeholder }: {
               style={{
                 width: '100%', background: 'none', border: 'none',
                 padding: '10px 14px', cursor: 'pointer', textAlign: 'left',
-                borderBottom: '1px solid #1a1f2e', color: '#e4e8f2',
+                borderBottom: '1px solid #1a1f2e', color: '#eeeeff',
                 fontSize: 14, fontFamily: '"DM Sans"',
               }}
             >
@@ -149,11 +149,11 @@ function SetInput({ label, scoreA, scoreB, onChangeA, onChangeB }: {
   onChangeA: (n: number) => void; onChangeB: (n: number) => void
 }) {
   const numStyle = (active: boolean): React.CSSProperties => ({
-    flex: 1, background: '#161922', border: `1px solid ${active ? '#bef264' : '#252a38'}`,
+    flex: 1, background: '#131428', border: `1px solid ${active ? '#a78bfa' : '#1e1e3c'}`,
     borderRadius: 10, height: 48, display: 'flex', alignItems: 'center',
     justifyContent: 'center', cursor: 'pointer', userSelect: 'none',
     fontSize: 22, fontFamily: '"IBM Plex Mono"', fontWeight: 700,
-    color: active ? '#bef264' : '#e4e8f2',
+    color: active ? '#a78bfa' : '#eeeeff',
   })
 
   const cycleA = () => { onChangeA((scoreA + 1) % 8); if (navigator.vibrate) navigator.vibrate(6) }
@@ -161,14 +161,14 @@ function SetInput({ label, scoreA, scoreB, onChangeA, onChangeB }: {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-      <span style={{ fontSize: 12, color: '#636b84', fontWeight: 600, width: 38, textAlign: 'right' }}>{label}</span>
+      <span style={{ fontSize: 12, color: '#7878a8', fontWeight: 600, width: 38, textAlign: 'right' }}>{label}</span>
       <div
         onClick={cycleA}
         style={numStyle(scoreA > 0)}
       >
         {scoreA}
       </div>
-      <span style={{ fontSize: 18, color: '#636b84', fontWeight: 300 }}>–</span>
+      <span style={{ fontSize: 18, color: '#7878a8', fontWeight: 300 }}>–</span>
       <div
         onClick={cycleB}
         style={numStyle(scoreB > 0)}
@@ -194,8 +194,8 @@ function ToggleGroup<T extends string>({ options, value, onChange }: {
           onClick={() => onChange(opt.value)}
           style={{
             flex: 1, padding: '9px 4px', borderRadius: 9, border: 'none',
-            background: value === opt.value ? '#bef264' : '#161922',
-            color: value === opt.value ? '#08090d' : '#636b84',
+            background: value === opt.value ? '#a78bfa' : '#131428',
+            color: value === opt.value ? '#07070f' : '#7878a8',
             fontSize: 13, fontWeight: 700, fontFamily: '"DM Sans"', cursor: 'pointer',
           }}
         >
@@ -211,7 +211,7 @@ function ToggleGroup<T extends string>({ options, value, onChange }: {
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      fontSize: 10, fontWeight: 700, color: '#636b84',
+      fontSize: 10, fontWeight: 700, color: '#7878a8',
       textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8,
     }}>
       {children}
@@ -222,7 +222,7 @@ function Label({ children }: { children: React.ReactNode }) {
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
-      background: '#0f1117', border: '1px solid #252a38', borderRadius: 14,
+      background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14,
       padding: '14px 16px', marginBottom: 12, ...style,
     }}>
       {children}
@@ -400,14 +400,14 @@ export function LogMatchPage() {
         <button
           onClick={() => navigate('/')}
           style={{
-            width: 36, height: 36, borderRadius: '50%', background: '#161922',
-            border: '1px solid #252a38', cursor: 'pointer', color: '#e4e8f2',
+            width: 36, height: 36, borderRadius: '50%', background: '#131428',
+            border: '1px solid #252a38', cursor: 'pointer', color: '#eeeeff',
             fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
           ←
         </button>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: '#e4e8f2', margin: 0 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 800, color: '#eeeeff', margin: 0 }}>
           {t('logAMatch')}
         </h1>
       </div>
@@ -422,14 +422,14 @@ export function LogMatchPage() {
                 key={i}
                 onClick={() => applyRecentTeam(team)}
                 style={{
-                  background: '#161922', border: '1px solid #252a38', borderRadius: 10,
+                  background: '#131428', border: '1px solid #252a38', borderRadius: 10,
                   padding: '10px 12px', cursor: 'pointer', textAlign: 'left',
                 }}
               >
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#e4e8f2' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#eeeeff' }}>
                   {team.player1} & {team.player2}
                 </div>
-                <div style={{ fontSize: 11, color: '#636b84', marginTop: 2 }}>
+                <div style={{ fontSize: 11, color: '#7878a8', marginTop: 2 }}>
                   vs {team.opp1} & {team.opp2}
                 </div>
               </button>
@@ -478,11 +478,11 @@ export function LogMatchPage() {
         <div style={{ marginBottom: 4 }}>
           <div style={{ display: 'flex', marginBottom: 8 }}>
             <div style={{ width: 38 }} />
-            <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#636b84', fontWeight: 700 }}>
+            <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#7878a8', fontWeight: 700 }}>
               {me || 'Us'}
             </div>
             <div style={{ width: 24 }} />
-            <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#636b84', fontWeight: 700 }}>
+            <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#7878a8', fontWeight: 700 }}>
               {opp1 || 'Them'}
             </div>
           </div>
@@ -492,7 +492,7 @@ export function LogMatchPage() {
             <SetInput label="S3" scoreA={set3A} scoreB={set3B} onChangeA={setSet3A} onChangeB={setSet3B} />
           )}
         </div>
-        <div style={{ fontSize: 11, color: '#636b84', marginTop: 4 }}>
+        <div style={{ fontSize: 11, color: '#7878a8', marginTop: 4 }}>
           Tap a number to cycle 0–7 · Set 3 appears if tied 1–1
         </div>
       </Card>
@@ -524,8 +524,8 @@ export function LogMatchPage() {
           max={new Date().toISOString().split('T')[0]}
           onChange={e => setMatchDate(e.target.value)}
           style={{
-            width: '100%', background: '#161922', border: '1px solid #252a38',
-            borderRadius: 10, padding: '11px 14px', color: '#e4e8f2',
+            width: '100%', background: '#131428', border: '1px solid #252a38',
+            borderRadius: 10, padding: '11px 14px', color: '#eeeeff',
             fontSize: 15, fontFamily: '"DM Sans"', outline: 'none', boxSizing: 'border-box',
           }}
         />
@@ -542,8 +542,8 @@ export function LogMatchPage() {
                 onClick={() => setWeather(weather === opt.value ? '' : opt.value)}
                 style={{
                   padding: '7px 12px', borderRadius: 8, border: 'none',
-                  background: weather === opt.value ? '#bef264' : '#161922',
-                  color: weather === opt.value ? '#08090d' : '#636b84',
+                  background: weather === opt.value ? '#a78bfa' : '#131428',
+                  color: weather === opt.value ? '#07070f' : '#7878a8',
                   fontSize: 12, fontWeight: 600, cursor: 'pointer',
                 }}
               >
@@ -563,8 +563,8 @@ export function LogMatchPage() {
           placeholder={t('notesPlaceholder')}
           rows={3}
           style={{
-            width: '100%', background: '#161922', border: '1px solid #252a38',
-            borderRadius: 10, padding: '11px 14px', color: '#e4e8f2',
+            width: '100%', background: '#131428', border: '1px solid #252a38',
+            borderRadius: 10, padding: '11px 14px', color: '#eeeeff',
             fontSize: 14, fontFamily: '"DM Sans"', outline: 'none', resize: 'none',
             boxSizing: 'border-box', lineHeight: 1.5,
           }}
@@ -577,8 +577,8 @@ export function LogMatchPage() {
         disabled={saving}
         style={{
           width: '100%', padding: '16px', borderRadius: 14, border: 'none',
-          background: saving ? '#4a5568' : '#bef264',
-          color: '#08090d', fontSize: 16, fontWeight: 800,
+          background: saving ? '#4a5568' : '#a78bfa',
+          color: '#07070f', fontSize: 16, fontWeight: 800,
           cursor: saving ? 'default' : 'pointer', fontFamily: '"DM Sans"',
           marginTop: 4,
         }}

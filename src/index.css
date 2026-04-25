@@ -5,6 +5,22 @@
   --safe-bottom: env(safe-area-inset-bottom);
   --safe-left: env(safe-area-inset-left);
   --safe-right: env(safe-area-inset-right);
+
+  /* Design tokens (CSS side) */
+  --bg:           #07070f;
+  --surface:      #0d0d1e;
+  --elevated:     #131428;
+  --border:       #1e1e3c;
+  --border-strong:#2d2d52;
+  --accent:       #7c3aed;
+  --accent-light: #a78bfa;
+  --party:        #ec4899;
+  --text:         #eeeeff;
+  --text2:        #7878a8;
+  --text3:        #424262;
+  --win:          #4ade80;
+  --loss:         #f87171;
+
   color-scheme: dark;
 }
 
@@ -17,11 +33,11 @@
 
 html, body {
   height: 100%;
-  background-color: #08090d;
+  background-color: var(--bg);
 }
 
 body {
-  color: #e4e8f2;
+  color: var(--text);
   font-family: "DM Sans", system-ui, sans-serif;
   touch-action: manipulation;
   overscroll-behavior-y: contain;
@@ -29,14 +45,14 @@ body {
   position: relative;
 }
 
-/* Noise texture overlay */
+/* Subtle noise texture */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.03;
+  opacity: 0.025;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
   background-size: 128px 128px;
 }
@@ -50,9 +66,10 @@ body::before {
 /* Scrollbar hide */
 ::-webkit-scrollbar { width: 0; height: 0; }
 
-/* Ripple animation */
+/* ── Animations ────────────────────────────────────────────────────────────── */
+
 @keyframes ripple-out {
-  0% { transform: scale(0); opacity: 0.4; }
+  0%   { transform: scale(0); opacity: 0.4; }
   100% { transform: scale(5); opacity: 0; }
 }
 .ripple {
@@ -63,36 +80,84 @@ body::before {
   background: white;
 }
 
-/* Score pop animation */
 @keyframes score-pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.07); }
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
-.score-pop { animation: score-pop 0.15s ease-in-out; }
+.score-pop { animation: score-pop 0.18s ease-out; }
 
-/* LIVE pulse */
 @keyframes pulse-live {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  50%       { opacity: 0.25; }
 }
 .pulse-live { animation: pulse-live 1.4s ease-in-out infinite; }
 
-/* Toast animations */
 @keyframes toast-slide-in {
   from { transform: translateY(-120%); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
+  to   { transform: translateY(0);     opacity: 1; }
 }
 @keyframes toast-slide-out {
-  from { transform: translateY(0); opacity: 1; }
+  from { transform: translateY(0);     opacity: 1; }
   to   { transform: translateY(-120%); opacity: 0; }
 }
-.toast-in  { animation: toast-slide-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.toast-in  { animation: toast-slide-in  0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 .toast-out { animation: toast-slide-out 0.18s ease-in forwards; }
 
-/* Flash border */
 @keyframes flash-border {
-  0%, 100% { border-color: #252a38; }
-  50%       { border-color: #bef264; box-shadow: 0 0 8px rgba(190,242,100,0.4); }
+  0%, 100% { border-color: var(--border); }
+  50%       { border-color: var(--accent-light); box-shadow: 0 0 10px rgba(124,58,237,0.35); }
 }
-.flash-lime { animation: flash-border 0.2s ease-in-out; }
+.flash-accent { animation: flash-border 0.22s ease-in-out; }
+/* Keep old class for any lingering usage */
+.flash-lime { animation: flash-border 0.22s ease-in-out; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fade-up 0.28s ease-out forwards; }
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(124,58,237,0.2); }
+  50%       { box-shadow: 0 0 24px rgba(124,58,237,0.5); }
+}
+.glow-pulse { animation: glow-pulse 2.2s ease-in-out infinite; }
+
+/* ── Utility classes ───────────────────────────────────────────────────────── */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn-primary:active { opacity: 0.8; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+}

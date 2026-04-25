@@ -27,70 +27,70 @@ function ScoringTab({ level }: { level: Level }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Points progression */}
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: '14px 16px' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>
+      <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: '14px 16px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>
           Points Progression
         </div>
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
           {points.map((p, i) => (
             <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{
-                background: i === points.length - 1 ? 'rgba(190,242,100,0.15)' : 'rgba(56,189,248,0.1)',
-                border: `1px solid ${i === points.length - 1 ? 'rgba(190,242,100,0.4)' : 'rgba(56,189,248,0.25)'}`,
+                background: i === points.length - 1 ? 'rgba(167,139,250,0.15)' : 'rgba(56,189,248,0.1)',
+                border: `1px solid ${i === points.length - 1 ? 'rgba(167,139,250,0.4)' : 'rgba(56,189,248,0.25)'}`,
                 borderRadius: 8, padding: '6px 12px',
                 fontFamily: '"IBM Plex Mono"', fontWeight: 700,
-                fontSize: 15, color: i === points.length - 1 ? '#bef264' : '#38bdf8',
+                fontSize: 15, color: i === points.length - 1 ? '#a78bfa' : '#38bdf8',
               }}>{p}</div>
-              {i < points.length - 1 && <span style={{ color: '#636b84', fontSize: 14 }}>→</span>}
+              {i < points.length - 1 && <span style={{ color: '#7878a8', fontSize: 14 }}>→</span>}
             </div>
           ))}
         </div>
       </div>
 
       {/* Deuce */}
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: '14px 16px' }}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: '#e4e8f2', marginBottom: 6 }}>⚖️ Deuce</div>
-        <div style={{ fontSize: 13, color: '#949cb4', lineHeight: 1.6 }}>
-          When both players reach 40, it's <span style={{ color: '#bef264', fontWeight: 700 }}>Deuce</span>. Win 2 consecutive points to win the game.
+      <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: '14px 16px' }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: '#eeeeff', marginBottom: 6 }}>⚖️ Deuce</div>
+        <div style={{ fontSize: 13, color: '#7878a8', lineHeight: 1.6 }}>
+          When both players reach 40, it's <span style={{ color: '#a78bfa', fontWeight: 700 }}>Deuce</span>. Win 2 consecutive points to win the game.
         </div>
       </div>
 
       {/* Golden Point */}
-      <div style={{ background: '#0f1117', border: '1px solid rgba(190,242,100,0.2)', borderRadius: 14, padding: '14px 16px' }}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: '#bef264', marginBottom: 6 }}>✨ Golden Point</div>
-        <div style={{ fontSize: 13, color: '#949cb4', lineHeight: 1.6 }}>
-          Some matches use <span style={{ color: '#bef264', fontWeight: 700 }}>Golden Point</span> — at Deuce, the <span style={{ color: '#38bdf8' }}>RECEIVING</span> team chooses which side to receive from. Win that one point to win the game.
+      <div style={{ background: '#0d0d1e', border: '1px solid rgba(167,139,250,0.2)', borderRadius: 14, padding: '14px 16px' }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: '#a78bfa', marginBottom: 6 }}>✨ Golden Point</div>
+        <div style={{ fontSize: 13, color: '#7878a8', lineHeight: 1.6 }}>
+          Some matches use <span style={{ color: '#a78bfa', fontWeight: 700 }}>Golden Point</span> — at Deuce, the <span style={{ color: '#38bdf8' }}>RECEIVING</span> team chooses which side to receive from. Win that one point to win the game.
         </div>
       </div>
 
       {/* Games */}
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: '14px 16px' }}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: '#e4e8f2', marginBottom: 6 }}>🎮 Games &amp; Sets</div>
-        <div style={{ fontSize: 13, color: '#949cb4', lineHeight: 1.6 }}>
-          First to <span style={{ color: '#bef264', fontWeight: 700 }}>6 games</span> wins the set. Must win by 2. At 6-6 → <span style={{ color: '#38bdf8', fontWeight: 700 }}>Tiebreak</span> (first to 7 points, win by 2).
+      <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: '14px 16px' }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: '#eeeeff', marginBottom: 6 }}>🎮 Games &amp; Sets</div>
+        <div style={{ fontSize: 13, color: '#7878a8', lineHeight: 1.6 }}>
+          First to <span style={{ color: '#a78bfa', fontWeight: 700 }}>6 games</span> wins the set. Must win by 2. At 6-6 → <span style={{ color: '#38bdf8', fontWeight: 700 }}>Tiebreak</span> (first to 7 points, win by 2).
         </div>
       </div>
 
       {/* Sets / Match */}
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: '14px 16px' }}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: '#e4e8f2', marginBottom: 6 }}>🏆 Match Format</div>
-        <div style={{ fontSize: 13, color: '#949cb4', lineHeight: 1.6 }}>
-          <span style={{ color: '#bef264', fontWeight: 700 }}>Best of 3 sets</span> wins the match. Most recreational matches play best of 3.
+      <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: '14px 16px' }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: '#eeeeff', marginBottom: 6 }}>🏆 Match Format</div>
+        <div style={{ fontSize: 13, color: '#7878a8', lineHeight: 1.6 }}>
+          <span style={{ color: '#a78bfa', fontWeight: 700 }}>Best of 3 sets</span> wins the match. Most recreational matches play best of 3.
         </div>
       </div>
 
       {/* Intermediate: Tiebreak details */}
       {level === 'Intermediate' && (
-        <div style={{ background: '#0f1117', border: '1px solid rgba(96,165,250,0.3)', borderRadius: 14, padding: '14px 16px' }}>
+        <div style={{ background: '#0d0d1e', border: '1px solid rgba(96,165,250,0.3)', borderRadius: 14, padding: '14px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(96,165,250,0.15)', color: '#60a5fa', borderRadius: 6, padding: '2px 7px', letterSpacing: '0.06em' }}>INTERMEDIATE</span>
             <span style={{ fontSize: 12, fontWeight: 800, color: '#60a5fa' }}>Tiebreak Scoring</span>
           </div>
-          <div style={{ fontSize: 13, color: '#949cb4', lineHeight: 1.7 }}>
-            • Points count from <span style={{ color: '#e4e8f2' }}>1, 2, 3…</span> (not 15, 30, 40)<br />
-            • Serve alternates every <span style={{ color: '#e4e8f2' }}>2 points</span> (first serve is 1 point)<br />
-            • Switch ends after every <span style={{ color: '#e4e8f2' }}>6 total points</span><br />
-            • First to <span style={{ color: '#bef264', fontWeight: 700 }}>7 points</span>, must win by 2
+          <div style={{ fontSize: 13, color: '#7878a8', lineHeight: 1.7 }}>
+            • Points count from <span style={{ color: '#eeeeff' }}>1, 2, 3…</span> (not 15, 30, 40)<br />
+            • Serve alternates every <span style={{ color: '#eeeeff' }}>2 points</span> (first serve is 1 point)<br />
+            • Switch ends after every <span style={{ color: '#eeeeff' }}>6 total points</span><br />
+            • First to <span style={{ color: '#a78bfa', fontWeight: 700 }}>7 points</span>, must win by 2
           </div>
         </div>
       )}
@@ -133,7 +133,7 @@ function CourtDiagram() {
 function AccordionItem({ emoji, title, children }: { emoji: string; title: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, overflow: 'hidden', marginBottom: 8 }}>
+    <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, overflow: 'hidden', marginBottom: 8 }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{
@@ -143,11 +143,11 @@ function AccordionItem({ emoji, title, children }: { emoji: string; title: strin
         }}
       >
         <span style={{ fontSize: 20 }}>{emoji}</span>
-        <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: '#e4e8f2' }}>{title}</span>
-        <span style={{ fontSize: 16, color: '#636b84', transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>›</span>
+        <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: '#eeeeff' }}>{title}</span>
+        <span style={{ fontSize: 16, color: '#7878a8', transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>›</span>
       </button>
       {open && (
-        <div style={{ padding: '0 16px 14px', fontSize: 13, color: '#949cb4', lineHeight: 1.7 }}>
+        <div style={{ padding: '0 16px 14px', fontSize: 13, color: '#7878a8', lineHeight: 1.7 }}>
           {children}
         </div>
       )}
@@ -163,23 +163,23 @@ function RulesTab({ level }: { level: Level }) {
         <div style={{ marginTop: 10 }}>
           The padel court is enclosed by <span style={{ color: '#38bdf8' }}>glass walls</span> and metal fencing.
           It is roughly half the size of a tennis court. The net divides the court in half,
-          and each side has two <span style={{ color: '#e4e8f2' }}>service boxes</span>.
+          and each side has two <span style={{ color: '#eeeeff' }}>service boxes</span>.
         </div>
       </AccordionItem>
 
       <AccordionItem emoji="🎯" title="Serving">
         <div>
-          • Serve must be hit <span style={{ color: '#bef264', fontWeight: 700 }}>underhand</span>, below hip height<br />
-          • Ball must bounce in the <span style={{ color: '#e4e8f2' }}>diagonal service box</span><br />
+          • Serve must be hit <span style={{ color: '#a78bfa', fontWeight: 700 }}>underhand</span>, below hip height<br />
+          • Ball must bounce in the <span style={{ color: '#eeeeff' }}>diagonal service box</span><br />
           • Server must stand behind the service line<br />
-          • You get <span style={{ color: '#bef264', fontWeight: 700 }}>two attempts</span> (like tennis)<br />
-          • Fault if the ball hits the fence <span style={{ color: '#fb7185' }}>without bouncing</span> on the serve
+          • You get <span style={{ color: '#a78bfa', fontWeight: 700 }}>two attempts</span> (like tennis)<br />
+          • Fault if the ball hits the fence <span style={{ color: '#f97316' }}>without bouncing</span> on the serve
         </div>
       </AccordionItem>
 
       <AccordionItem emoji="🧱" title="Wall Play">
         <div>
-          • The ball can come off walls <span style={{ color: '#bef264', fontWeight: 700 }}>after bouncing</span> in the opponent's court<br />
+          • The ball can come off walls <span style={{ color: '#a78bfa', fontWeight: 700 }}>after bouncing</span> in the opponent's court<br />
           • You can play the ball off your own walls and send it back over the net<br />
           • A <span style={{ color: '#38bdf8' }}>let</span> is called if the ball hits the net post<br />
           • Walls are a strategic element — use them!
@@ -189,43 +189,43 @@ function RulesTab({ level }: { level: Level }) {
       <AccordionItem emoji="🏆" title="Scoring a Point">
         <div>
           • Winner: opponent can't return the ball before it bounces twice<br />
-          • Error: ball goes into the net or out of bounds <span style={{ color: '#fb7185' }}>before bouncing</span><br />
+          • Error: ball goes into the net or out of bounds <span style={{ color: '#f97316' }}>before bouncing</span><br />
           • Double bounce before the return = point lost<br />
-          • Ball must land <span style={{ color: '#bef264' }}>inside</span> the court boundaries
+          • Ball must land <span style={{ color: '#a78bfa' }}>inside</span> the court boundaries
         </div>
       </AccordionItem>
 
       <AccordionItem emoji="⚠️" title="Common Faults">
         <div>
-          • Serve hit <span style={{ color: '#fb7185' }}>above hip height</span><br />
-          • Foot stepping into the court <span style={{ color: '#fb7185' }}>during the serve</span><br />
-          • Ball hits the fence <span style={{ color: '#fb7185' }}>without bouncing</span> on serve<br />
+          • Serve hit <span style={{ color: '#f97316' }}>above hip height</span><br />
+          • Foot stepping into the court <span style={{ color: '#f97316' }}>during the serve</span><br />
+          • Ball hits the fence <span style={{ color: '#f97316' }}>without bouncing</span> on serve<br />
           • Returning before the ball bounces (volley on serve return is allowed only if ball would go out)
         </div>
       </AccordionItem>
 
       {level === 'Intermediate' && (
-        <div style={{ background: '#0f1117', border: '1px solid rgba(96,165,250,0.3)', borderRadius: 14, padding: '14px 16px', marginBottom: 8 }}>
+        <div style={{ background: '#0d0d1e', border: '1px solid rgba(96,165,250,0.3)', borderRadius: 14, padding: '14px 16px', marginBottom: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(96,165,250,0.15)', color: '#60a5fa', borderRadius: 6, padding: '2px 7px', letterSpacing: '0.06em' }}>INTERMEDIATE</span>
             <span style={{ fontSize: 13, fontWeight: 800, color: '#60a5fa' }}>Specialty Shots</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#e4e8f2', marginBottom: 3 }}>🏸 Bandeja</div>
-              <div style={{ fontSize: 13, color: '#949cb4', lineHeight: 1.6 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#eeeeff', marginBottom: 3 }}>🏸 Bandeja</div>
+              <div style={{ fontSize: 13, color: '#7878a8', lineHeight: 1.6 }}>
                 A controlled overhead shot hit with slice. Keeps you at the net position instead of falling back. Used to neutralize lobs.
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#e4e8f2', marginBottom: 3 }}>⚡ Vibora</div>
-              <div style={{ fontSize: 13, color: '#949cb4', lineHeight: 1.6 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#eeeeff', marginBottom: 3 }}>⚡ Vibora</div>
+              <div style={{ fontSize: 13, color: '#7878a8', lineHeight: 1.6 }}>
                 An aggressive overhead with topspin and side spin. More powerful than the bandeja, used to finish points from the net.
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#e4e8f2', marginBottom: 3 }}>🔽 Bajada</div>
-              <div style={{ fontSize: 13, color: '#949cb4', lineHeight: 1.6 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#eeeeff', marginBottom: 3 }}>🔽 Bajada</div>
+              <div style={{ fontSize: 13, color: '#7878a8', lineHeight: 1.6 }}>
                 Playing the ball off the back glass down low and sending it back over the net. A defensive move turned offensive.
               </div>
             </div>
@@ -259,12 +259,12 @@ const intermediateTips: TipData[] = [
 function TipCard({ tip }: { tip: TipData }) {
   return (
     <div style={{
-      background: '#0f1117', border: '1px solid #252a38', borderRadius: 14,
+      background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14,
       padding: '14px', display: 'flex', flexDirection: 'column', gap: 6,
     }}>
       <div style={{ fontSize: 22 }}>{tip.emoji}</div>
-      <div style={{ fontSize: 12, fontWeight: 800, color: '#e4e8f2' }}>{tip.title}</div>
-      <div style={{ fontSize: 12, color: '#636b84', lineHeight: 1.5 }}>{tip.desc}</div>
+      <div style={{ fontSize: 12, fontWeight: 800, color: '#eeeeff' }}>{tip.title}</div>
+      <div style={{ fontSize: 12, color: '#7878a8', lineHeight: 1.5 }}>{tip.desc}</div>
     </div>
   )
 }
@@ -274,7 +274,7 @@ function TipsTab({ level }: { level: Level }) {
   return (
     <div>
       {level === 'Intermediate' && (
-        <div style={{ fontSize: 11, color: '#636b84', marginBottom: 12 }}>
+        <div style={{ fontSize: 11, color: '#7878a8', marginBottom: 12 }}>
           Showing all beginner + intermediate tips
         </div>
       )}
@@ -362,22 +362,22 @@ function QuizTab() {
       return "Keep Learning! 📚"
     }
     return (
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 16, padding: '28px 20px', textAlign: 'center' }}>
+      <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 16, padding: '28px 20px', textAlign: 'center' }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>
           {score === 5 ? '🏆' : score >= 3 ? '🌟' : '📚'}
         </div>
-        <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 42, fontWeight: 800, color: '#bef264', marginBottom: 6 }}>
+        <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 42, fontWeight: 800, color: '#a78bfa', marginBottom: 6 }}>
           {score}/5
         </div>
-        <div style={{ fontSize: 18, fontWeight: 800, color: '#e4e8f2', marginBottom: 8 }}>{getMessage()}</div>
-        <div style={{ fontSize: 13, color: '#636b84', marginBottom: 24 }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: '#eeeeff', marginBottom: 8 }}>{getMessage()}</div>
+        <div style={{ fontSize: 13, color: '#7878a8', marginBottom: 24 }}>
           You answered {score} out of 5 questions correctly.
         </div>
         <button
           onClick={handleReset}
           style={{
-            background: 'rgba(190,242,100,0.12)', border: '1px solid rgba(190,242,100,0.3)',
-            borderRadius: 10, padding: '12px 28px', color: '#bef264',
+            background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.3)',
+            borderRadius: 10, padding: '12px 28px', color: '#a78bfa',
             fontSize: 14, fontWeight: 700, cursor: 'pointer',
           }}
         >
@@ -401,27 +401,27 @@ function QuizTab() {
             style={{
               flex: 1, height: 4, borderRadius: 2,
               background: i < currentQ
-                ? (answers[i] === questions[i].correct ? '#34d399' : '#fb7185')
-                : i === currentQ ? '#bef264' : '#252a38',
+                ? (answers[i] === questions[i].correct ? '#34d399' : '#f97316')
+                : i === currentQ ? '#a78bfa' : '#1e1e3c',
             }}
           />
         ))}
       </div>
 
-      <div style={{ fontSize: 11, color: '#636b84', marginBottom: 10, fontWeight: 600 }}>
+      <div style={{ fontSize: 11, color: '#7878a8', marginBottom: 10, fontWeight: 600 }}>
         Question {currentQ + 1} of {questions.length}
       </div>
 
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: '16px' }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#e4e8f2', lineHeight: 1.5, marginBottom: 16 }}>
+      <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: '16px' }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: '#eeeeff', lineHeight: 1.5, marginBottom: 16 }}>
           {q.q}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {q.options.map((opt, i) => {
-            let borderColor = '#252a38'
+            let borderColor = '#1e1e3c'
             let bgColor = 'transparent'
-            let textColor = '#949cb4'
+            let textColor = '#7878a8'
 
             if (hasAnswered) {
               if (i === q.correct) {
@@ -431,7 +431,7 @@ function QuizTab() {
               } else if (i === chosen && chosen !== q.correct) {
                 borderColor = 'rgba(251,113,133,0.5)'
                 bgColor = 'rgba(251,113,133,0.08)'
-                textColor = '#fb7185'
+                textColor = '#f97316'
               }
             }
 
@@ -446,7 +446,7 @@ function QuizTab() {
                   transition: 'all 0.2s',
                 }}
               >
-                <span style={{ fontFamily: '"IBM Plex Mono"', color: '#636b84', marginRight: 8 }}>
+                <span style={{ fontFamily: '"IBM Plex Mono"', color: '#7878a8', marginRight: 8 }}>
                   {String.fromCharCode(65 + i)}.
                 </span>
                 {opt}
@@ -462,9 +462,9 @@ function QuizTab() {
             marginTop: 12, padding: '10px 12px',
             background: chosen === q.correct ? 'rgba(52,211,153,0.06)' : 'rgba(251,113,133,0.06)',
             border: `1px solid ${chosen === q.correct ? 'rgba(52,211,153,0.2)' : 'rgba(251,113,133,0.2)'}`,
-            borderRadius: 10, fontSize: 12, color: '#949cb4', lineHeight: 1.6,
+            borderRadius: 10, fontSize: 12, color: '#7878a8', lineHeight: 1.6,
           }}>
-            <span style={{ fontWeight: 700, color: chosen === q.correct ? '#34d399' : '#fb7185', marginRight: 6 }}>
+            <span style={{ fontWeight: 700, color: chosen === q.correct ? '#34d399' : '#f97316', marginRight: 6 }}>
               {chosen === q.correct ? '✓ Correct!' : '✗ Incorrect.'}
             </span>
             {q.explanation}
@@ -477,8 +477,8 @@ function QuizTab() {
           onClick={handleNext}
           style={{
             marginTop: 12, width: '100%',
-            background: 'rgba(190,242,100,0.12)', border: '1px solid rgba(190,242,100,0.3)',
-            borderRadius: 10, padding: '14px', color: '#bef264',
+            background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.3)',
+            borderRadius: 10, padding: '14px', color: '#a78bfa',
             fontSize: 14, fontWeight: 700, cursor: 'pointer',
           }}
         >
@@ -680,8 +680,8 @@ function DrillTimer({ drill, onClose }: { drill: Drill; onClose: () => void }) {
       padding: 24,
     }}>
       <div style={{ fontSize: 36, marginBottom: 8 }}>{drill.emoji}</div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: '#e4e8f2', marginBottom: 4, textAlign: 'center' }}>{drill.name}</div>
-      <div style={{ fontSize: 12, color: '#636b84', marginBottom: 32 }}>{drill.focus}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: '#eeeeff', marginBottom: 4, textAlign: 'center' }}>{drill.name}</div>
+      <div style={{ fontSize: 12, color: '#7878a8', marginBottom: 32 }}>{drill.focus}</div>
 
       {/* Circular progress ring */}
       <div style={{ position: 'relative', width: 160, height: 160, marginBottom: 28 }}>
@@ -689,7 +689,7 @@ function DrillTimer({ drill, onClose }: { drill: Drill; onClose: () => void }) {
           <circle cx={80} cy={80} r={68} fill="none" stroke="#1e2330" strokeWidth={10} />
           <circle
             cx={80} cy={80} r={68} fill="none"
-            stroke={done ? '#34d399' : running ? '#bef264' : '#38bdf8'}
+            stroke={done ? '#34d399' : running ? '#a78bfa' : '#38bdf8'}
             strokeWidth={10}
             strokeDasharray={`${2 * Math.PI * 68}`}
             strokeDashoffset={`${2 * Math.PI * 68 * (1 - pct / 100)}`}
@@ -705,10 +705,10 @@ function DrillTimer({ drill, onClose }: { drill: Drill; onClose: () => void }) {
             <div style={{ fontSize: 40 }}>✅</div>
           ) : (
             <>
-              <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 36, fontWeight: 800, color: '#e4e8f2', letterSpacing: 2 }}>
+              <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 36, fontWeight: 800, color: '#eeeeff', letterSpacing: 2 }}>
                 {mins}:{secs}
               </div>
-              <div style={{ fontSize: 10, color: '#636b84', marginTop: 2 }}>remaining</div>
+              <div style={{ fontSize: 10, color: '#7878a8', marginTop: 2 }}>remaining</div>
             </>
           )}
         </div>
@@ -717,7 +717,7 @@ function DrillTimer({ drill, onClose }: { drill: Drill; onClose: () => void }) {
       {done ? (
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ fontSize: 20, fontWeight: 800, color: '#34d399', marginBottom: 6 }}>Drill Complete!</div>
-          <div style={{ fontSize: 13, color: '#636b84' }}>Great work — take a 60s rest before the next drill.</div>
+          <div style={{ fontSize: 13, color: '#7878a8' }}>Great work — take a 60s rest before the next drill.</div>
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 12, marginBottom: 28 }}>
@@ -725,16 +725,16 @@ function DrillTimer({ drill, onClose }: { drill: Drill; onClose: () => void }) {
             onClick={() => setRunning(r => !r)}
             style={{
               width: 64, height: 64, borderRadius: '50%', border: 'none', cursor: 'pointer',
-              background: running ? '#fb7185' : '#bef264', color: '#08090d',
+              background: running ? '#f97316' : '#a78bfa', color: '#07070f',
               fontSize: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 4px 20px ${running ? 'rgba(251,113,133,0.35)' : 'rgba(190,242,100,0.35)'}`,
+              boxShadow: `0 4px 20px ${running ? 'rgba(251,113,133,0.35)' : 'rgba(167,139,250,0.35)'}`,
             }}
           >{running ? '⏸' : '▶'}</button>
           <button
             onClick={() => { setRunning(false); setRemaining(total) }}
             style={{
               width: 44, height: 44, borderRadius: '50%', border: '1px solid #252a38',
-              background: '#161922', cursor: 'pointer', color: '#636b84', fontSize: 18,
+              background: '#131428', cursor: 'pointer', color: '#7878a8', fontSize: 18,
               display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'center',
             }}
           >↺</button>
@@ -746,7 +746,7 @@ function DrillTimer({ drill, onClose }: { drill: Drill; onClose: () => void }) {
         style={{
           padding: '12px 32px', borderRadius: 10,
           background: 'rgba(255,255,255,0.05)', border: '1px solid #252a38',
-          color: '#636b84', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          color: '#7878a8', fontSize: 13, fontWeight: 600, cursor: 'pointer',
         }}
       >Close Timer</button>
     </div>
@@ -759,15 +759,15 @@ const CATEGORIES: DrillCategory[] = ['All', 'Warm-Up', 'Net Play', 'Wall Play', 
 
 const CAT_COLORS: Record<string, string> = {
   'Warm-Up': '#fbbf24', 'Net Play': '#34d399', 'Wall Play': '#38bdf8',
-  'Serve': '#f97316', 'Fitness': '#fb7185', 'Tactics': '#a78bfa',
+  'Serve': '#f97316', 'Fitness': '#f97316', 'Tactics': '#a78bfa',
 }
 
 function DrillCard({ drill, onStart }: { drill: Drill; onStart: (d: Drill) => void }) {
   const [expanded, setExpanded] = useState(false)
-  const catColor = CAT_COLORS[drill.category] ?? '#bef264'
+  const catColor = CAT_COLORS[drill.category] ?? '#a78bfa'
   return (
     <div style={{
-      background: '#0f1117', border: '1px solid #252a38', borderRadius: 14,
+      background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14,
       overflow: 'hidden', marginBottom: 10,
     }}>
       {/* Header row */}
@@ -780,7 +780,7 @@ function DrillCard({ drill, onStart }: { drill: Drill; onStart: (d: Drill) => vo
       >
         <span style={{ fontSize: 26, flexShrink: 0 }}>{drill.emoji}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: '#e4e8f2', marginBottom: 4 }}>{drill.name}</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#eeeeff', marginBottom: 4 }}>{drill.name}</div>
           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
             <span style={{
               fontSize: 10, fontWeight: 700, color: catColor,
@@ -789,17 +789,17 @@ function DrillCard({ drill, onStart }: { drill: Drill; onStart: (d: Drill) => vo
             }}>{drill.category}</span>
             <span style={{
               fontSize: 10, fontWeight: 700,
-              color: drill.level === 'Beginner' ? '#bef264' : '#60a5fa',
-              background: drill.level === 'Beginner' ? 'rgba(190,242,100,0.1)' : 'rgba(96,165,250,0.1)',
+              color: drill.level === 'Beginner' ? '#a78bfa' : '#60a5fa',
+              background: drill.level === 'Beginner' ? 'rgba(167,139,250,0.1)' : 'rgba(96,165,250,0.1)',
               borderRadius: 5, padding: '2px 7px',
             }}>{drill.level}</span>
-            <span style={{ fontSize: 10, color: '#636b84', padding: '2px 0' }}>
+            <span style={{ fontSize: 10, color: '#7878a8', padding: '2px 0' }}>
               {drill.players} · {drill.durationMin} min
             </span>
           </div>
         </div>
         <span style={{
-          fontSize: 16, color: '#636b84',
+          fontSize: 16, color: '#7878a8',
           transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0,
         }}>›</span>
       </button>
@@ -807,20 +807,20 @@ function DrillCard({ drill, onStart }: { drill: Drill; onStart: (d: Drill) => vo
       {/* Expanded body */}
       {expanded && (
         <div style={{ padding: '0 16px 16px', borderTop: '1px solid #161922' }}>
-          <p style={{ fontSize: 13, color: '#949cb4', lineHeight: 1.6, margin: '12px 0 10px' }}>
+          <p style={{ fontSize: 13, color: '#7878a8', lineHeight: 1.6, margin: '12px 0 10px' }}>
             {drill.description}
           </p>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Steps</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Steps</div>
           <ol style={{ margin: '0 0 12px', paddingLeft: 18 }}>
             {drill.steps.map((s, i) => (
-              <li key={i} style={{ fontSize: 13, color: '#949cb4', lineHeight: 1.6, marginBottom: 4 }}>{s}</li>
+              <li key={i} style={{ fontSize: 13, color: '#7878a8', lineHeight: 1.6, marginBottom: 4 }}>{s}</li>
             ))}
           </ol>
           <div style={{
-            background: '#161922', borderRadius: 8, padding: '8px 12px', marginBottom: 14,
-            fontSize: 11, color: '#636b84',
+            background: '#131428', borderRadius: 8, padding: '8px 12px', marginBottom: 14,
+            fontSize: 11, color: '#7878a8',
           }}>
-            <span style={{ fontWeight: 700, color: '#e4e8f2' }}>Focus: </span>{drill.focus}
+            <span style={{ fontWeight: 700, color: '#eeeeff' }}>Focus: </span>{drill.focus}
           </div>
           <button
             onClick={() => onStart(drill)}
@@ -855,15 +855,15 @@ function DrillsTab({ level }: { level: Level }) {
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', marginBottom: 14, paddingBottom: 2 }}>
         {CATEGORIES.map(c => {
           const active = cat === c
-          const color = c === 'All' ? '#bef264' : CAT_COLORS[c]
+          const color = c === 'All' ? '#a78bfa' : CAT_COLORS[c]
           return (
             <button
               key={c}
               onClick={() => setCat(c)}
               style={{
                 flexShrink: 0, padding: '6px 13px', borderRadius: 20, cursor: 'pointer',
-                background: active ? color + '20' : '#0f1117',
-                color: active ? color : '#636b84',
+                background: active ? color + '20' : '#0d0d1e',
+                color: active ? color : '#7878a8',
                 border: active ? `1px solid ${color}55` : '1px solid #252a38',
                 fontSize: 12, fontWeight: 700, fontFamily: '"DM Sans"',
               }}
@@ -873,13 +873,13 @@ function DrillsTab({ level }: { level: Level }) {
       </div>
 
       {/* Count */}
-      <div style={{ fontSize: 11, color: '#636b84', marginBottom: 10 }}>
+      <div style={{ fontSize: 11, color: '#7878a8', marginBottom: 10 }}>
         {visible.length} drill{visible.length !== 1 ? 's' : ''}
         {level === 'Beginner' && <span> · Switch to Intermediate to unlock all drills</span>}
       </div>
 
       {visible.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: '#636b84' }}>
+        <div style={{ textAlign: 'center', padding: '40px 0', color: '#7878a8' }}>
           <div style={{ fontSize: 28, marginBottom: 8 }}>🎾</div>
           <div style={{ fontSize: 14 }}>No drills in this category yet</div>
         </div>
@@ -900,7 +900,7 @@ export function RulesPage() {
   const tabs: Tab[] = ['Scoring', 'Rules', 'Tips', 'Drills', 'Quiz']
 
   return (
-    <div style={{ background: '#08090d', minHeight: '100vh', paddingBottom: 40 }}>
+    <div style={{ background: '#07070f', minHeight: '100vh', paddingBottom: 40 }}>
       {/* Sticky header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 50,
@@ -913,19 +913,19 @@ export function RulesPage() {
           style={{
             background: 'rgba(255,255,255,0.05)', border: '1px solid #252a38',
             borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center',
-            justifyContent: 'center', cursor: 'pointer', fontSize: 18, color: '#e4e8f2',
+            justifyContent: 'center', cursor: 'pointer', fontSize: 18, color: '#eeeeff',
             flexShrink: 0,
           }}
         >
           ‹
         </button>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: '#e4e8f2' }}>Padel Rules</div>
-          <div style={{ fontSize: 11, color: '#636b84' }}>Learn &amp; master the game</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#eeeeff' }}>Padel Rules</div>
+          <div style={{ fontSize: 11, color: '#7878a8' }}>Learn &amp; master the game</div>
         </div>
         {/* Level selector */}
         <div style={{
-          display: 'flex', background: '#0f1117', border: '1px solid #252a38',
+          display: 'flex', background: '#0d0d1e', border: '1px solid #252a38',
           borderRadius: 10, overflow: 'hidden', flexShrink: 0,
         }}>
           {(['Beginner', 'Intermediate'] as Level[]).map(l => (
@@ -934,8 +934,8 @@ export function RulesPage() {
               onClick={() => setLevel(l)}
               style={{
                 padding: '6px 10px', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
-                background: level === l ? (l === 'Beginner' ? 'rgba(190,242,100,0.15)' : 'rgba(96,165,250,0.15)') : 'transparent',
-                color: level === l ? (l === 'Beginner' ? '#bef264' : '#60a5fa') : '#636b84',
+                background: level === l ? (l === 'Beginner' ? 'rgba(167,139,250,0.15)' : 'rgba(96,165,250,0.15)') : 'transparent',
+                color: level === l ? (l === 'Beginner' ? '#a78bfa' : '#60a5fa') : '#7878a8',
                 transition: 'all 0.15s',
               }}
             >
@@ -948,7 +948,7 @@ export function RulesPage() {
       {/* Tab bar */}
       <div style={{
         display: 'flex', gap: 0, borderBottom: '1px solid #252a38',
-        background: '#08090d', padding: '0 16px',
+        background: '#07070f', padding: '0 16px',
         position: 'sticky', top: 61, zIndex: 40,
       }}>
         {tabs.map(t => (
@@ -958,7 +958,7 @@ export function RulesPage() {
             style={{
               flex: 1, padding: '13px 4px', background: 'none', border: 'none',
               borderBottom: tab === t ? '2px solid #bef264' : '2px solid transparent',
-              color: tab === t ? '#bef264' : '#636b84',
+              color: tab === t ? '#a78bfa' : '#7878a8',
               fontSize: 13, fontWeight: 700, cursor: 'pointer',
               transition: 'color 0.15s',
             }}

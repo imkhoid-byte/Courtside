@@ -47,7 +47,7 @@ function MatchCard({
       <div
         onClick={() => navigate(`/match/${match.id}`)}
         style={{
-          background: '#0f1117', border: '1px solid #252a38',
+          background: '#0d0d1e', border: '1px solid #252a38',
           borderRadius: 12, padding: '12px 14px',
           display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer',
           transition: 'border-color 0.15s',
@@ -60,18 +60,18 @@ function MatchCard({
           border: `1px solid ${isWin ? 'rgba(52,211,153,0.25)' : 'rgba(251,113,133,0.25)'}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ fontSize: 12, fontWeight: 800, color: isWin ? '#34d399' : '#fb7185' }}>{isWin ? 'W' : 'L'}</span>
+          <span style={{ fontSize: 12, fontWeight: 800, color: isWin ? '#34d399' : '#f97316' }}>{isWin ? 'W' : 'L'}</span>
         </div>
 
         {/* Match info */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#e4e8f2', marginBottom: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#eeeeff', marginBottom: 1 }}>
             {myName} & {myPartner || '—'}
           </div>
-          <div style={{ fontSize: 11, color: '#636b84', marginBottom: 3 }}>
+          <div style={{ fontSize: 11, color: '#7878a8', marginBottom: 3 }}>
             vs {opp1} & {opp2 || '—'}
           </div>
-          <div style={{ fontSize: 10, color: '#636b84' }}>
+          <div style={{ fontSize: 10, color: '#7878a8' }}>
             {date}{match.venue ? ` · ${match.venue}` : ''} · {match.surface}
           </div>
         </div>
@@ -79,17 +79,17 @@ function MatchCard({
         {/* Scores + actions */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
           {setScores.map((s, i) => (
-            <span key={i} style={{ fontFamily: '"IBM Plex Mono"', fontSize: 13, color: '#949cb4', fontWeight: 600 }}>{s}</span>
+            <span key={i} style={{ fontFamily: '"IBM Plex Mono"', fontSize: 13, color: '#7878a8', fontWeight: 600 }}>{s}</span>
           ))}
           <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
             <button
               onClick={handleShare}
-              style={{ padding: '3px 7px', borderRadius: 5, border: '1px solid #252a38', background: '#161922', color: '#636b84', fontSize: 11, cursor: 'pointer' }}
+              style={{ padding: '3px 7px', borderRadius: 5, border: '1px solid #252a38', background: '#131428', color: '#7878a8', fontSize: 11, cursor: 'pointer' }}
               title="Share"
             >↗</button>
             <button
               onClick={handleDeleteClick}
-              style={{ padding: '3px 7px', borderRadius: 5, border: '1px solid rgba(251,113,133,0.2)', background: 'rgba(251,113,133,0.06)', color: '#fb7185', fontSize: 11, cursor: 'pointer' }}
+              style={{ padding: '3px 7px', borderRadius: 5, border: '1px solid rgba(251,113,133,0.2)', background: 'rgba(251,113,133,0.06)', color: '#f97316', fontSize: 11, cursor: 'pointer' }}
               title="Delete"
             >✕</button>
           </div>
@@ -106,14 +106,14 @@ function MatchCard({
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 16,
           }}
         >
-          <span style={{ fontSize: 12, color: '#e4e8f2', flex: 1 }}>Delete this match?</span>
+          <span style={{ fontSize: 12, color: '#eeeeff', flex: 1 }}>Delete this match?</span>
           <button
             onClick={() => setConfirmDelete(false)}
-            style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #252a38', background: '#161922', color: '#949cb4', fontSize: 12, cursor: 'pointer' }}
+            style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #252a38', background: '#131428', color: '#7878a8', fontSize: 12, cursor: 'pointer' }}
           >Cancel</button>
           <button
             onClick={handleConfirmDelete}
-            style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#fb7185', color: '#08090d', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+            style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#f97316', color: '#07070f', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
           >Delete</button>
         </div>
       )}
@@ -130,11 +130,11 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
   const date = new Date(tournament.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   return (
-    <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, padding: '14px' }}>
+    <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 12, padding: '14px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 800, color: '#e4e8f2' }}>{tournament.name}</div>
-          <div style={{ fontSize: 11, color: '#636b84', marginTop: 2 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#eeeeff' }}>{tournament.name}</div>
+          <div style={{ fontSize: 11, color: '#7878a8', marginTop: 2 }}>
             {tournament.format} · {tournament.players.length} players · {date}
           </div>
         </div>
@@ -149,10 +149,10 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
         {top3.map((r, i) => (
-          <div key={r.player} style={{ flex: 1, background: '#161922', borderRadius: 8, padding: '8px', textAlign: 'center' }}>
+          <div key={r.player} style={{ flex: 1, background: '#131428', borderRadius: 8, padding: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: 14 }}>{medals[i]}</div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#e4e8f2', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.player}</div>
-            <div style={{ fontSize: 10, color: '#636b84' }}>{r.score} pts</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#eeeeff', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.player}</div>
+            <div style={{ fontSize: 10, color: '#7878a8' }}>{r.score} pts</div>
           </div>
         ))}
       </div>
@@ -215,7 +215,7 @@ export function HistoryPage() {
             <button key={tabKey} onClick={() => setTab(tabKey)} style={{
               flex: 1, padding: '12px', background: 'none', border: 'none',
               borderBottom: tab === tabKey ? '2px solid #bef264' : '2px solid transparent',
-              color: tab === tabKey ? '#bef264' : '#636b84',
+              color: tab === tabKey ? '#a78bfa' : '#7878a8',
               fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}>
               {tabKey === 'matches' ? `Matches (${matches.length})` : `Tournaments (${tournaments.length})`}
@@ -228,29 +228,29 @@ export function HistoryPage() {
           <div style={{ padding: '8px 12px 10px', display: 'flex', gap: 8, alignItems: 'center' }}>
             <div style={{
               flex: 1, display: 'flex', alignItems: 'center', gap: 8,
-              background: '#0f1117', border: '1px solid #252a38', borderRadius: 9,
+              background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 9,
               padding: '8px 12px',
             }}>
-              <span style={{ fontSize: 14, color: '#636b84' }}>🔍</span>
+              <span style={{ fontSize: 14, color: '#7878a8' }}>🔍</span>
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search player or venue…"
                 style={{
                   flex: 1, background: 'none', border: 'none', outline: 'none',
-                  color: '#e4e8f2', fontSize: 13, fontFamily: '"DM Sans"',
+                  color: '#eeeeff', fontSize: 13, fontFamily: '"DM Sans"',
                 }}
               />
               {search && (
-                <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: '#636b84', cursor: 'pointer', fontSize: 14, padding: 0 }}>✕</button>
+                <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: '#7878a8', cursor: 'pointer', fontSize: 14, padding: 0 }}>✕</button>
               )}
             </div>
             {(['all', 'wins', 'losses'] as const).map(f => (
               <button key={f} onClick={() => setFilter(f)} style={{
                 padding: '7px 10px', borderRadius: 8, cursor: 'pointer',
-                background: filter === f ? (f === 'wins' ? 'rgba(52,211,153,0.12)' : f === 'losses' ? 'rgba(251,113,133,0.12)' : '#252a38') : '#0f1117',
-                border: `1px solid ${filter === f ? (f === 'wins' ? 'rgba(52,211,153,0.3)' : f === 'losses' ? 'rgba(251,113,133,0.3)' : '#3a4055') : '#252a38'}`,
-                color: filter === f ? (f === 'wins' ? '#34d399' : f === 'losses' ? '#fb7185' : '#e4e8f2') : '#636b84',
+                background: filter === f ? (f === 'wins' ? 'rgba(52,211,153,0.12)' : f === 'losses' ? 'rgba(251,113,133,0.12)' : '#1e1e3c') : '#0d0d1e',
+                border: `1px solid ${filter === f ? (f === 'wins' ? 'rgba(52,211,153,0.3)' : f === 'losses' ? 'rgba(251,113,133,0.3)' : '#3a4055') : '#1e1e3c'}`,
+                color: filter === f ? (f === 'wins' ? '#34d399' : f === 'losses' ? '#f97316' : '#eeeeff') : '#7878a8',
                 fontSize: 11, fontWeight: 700,
               }}>
                 {f === 'all' ? 'All' : f === 'wins' ? 'W' : 'L'}
@@ -263,22 +263,22 @@ export function HistoryPage() {
       {/* Content */}
       <div style={{ padding: '12px 16px 96px' }}>
         {loading ? (
-          <div style={{ color: '#636b84', fontSize: 14, padding: 32, textAlign: 'center' }}>{t('loading')}</div>
+          <div style={{ color: '#7878a8', fontSize: 14, padding: 32, textAlign: 'center' }}>{t('loading')}</div>
         ) : tab === 'matches' ? (
           filtered.length === 0 ? (
-            <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 48, textAlign: 'center' }}>
+            <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: 48, textAlign: 'center' }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>{matches.length === 0 ? '🎾' : '🔍'}</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#e4e8f2', marginBottom: 4 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#eeeeff', marginBottom: 4 }}>
                 {matches.length === 0 ? 'No matches yet' : 'No results'}
               </div>
-              <div style={{ fontSize: 13, color: '#636b84' }}>
+              <div style={{ fontSize: 13, color: '#7878a8' }}>
                 {matches.length === 0 ? 'Complete a match to see it here' : 'Try a different search or filter'}
               </div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {filtered.length !== matches.length && (
-                <div style={{ fontSize: 11, color: '#636b84', paddingBottom: 4 }}>
+                <div style={{ fontSize: 11, color: '#7878a8', paddingBottom: 4 }}>
                   Showing {filtered.length} of {matches.length} matches
                 </div>
               )}
@@ -289,10 +289,10 @@ export function HistoryPage() {
           )
         ) : (
           tournaments.length === 0 ? (
-            <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 48, textAlign: 'center' }}>
+            <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: 48, textAlign: 'center' }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>🏆</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#e4e8f2', marginBottom: 4 }}>No tournaments yet</div>
-              <div style={{ fontSize: 13, color: '#636b84' }}>Start an Americano or Mexicano!</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#eeeeff', marginBottom: 4 }}>No tournaments yet</div>
+              <div style={{ fontSize: 13, color: '#7878a8' }}>Start an Americano or Mexicano!</div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

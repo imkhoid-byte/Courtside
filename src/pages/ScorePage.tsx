@@ -141,7 +141,7 @@ async function generateShareImage(text: string): Promise<Blob | null> {
     if (!ctx) return null
 
     // Background
-    ctx.fillStyle = '#08090d'
+    ctx.fillStyle = '#07070f'
     ctx.fillRect(0, 0, 1080, 1920)
 
     // Pink accent bar
@@ -161,21 +161,21 @@ async function generateShareImage(text: string): Promise<Blob | null> {
     ctx.fillText('Padel Party', 540, 160)
 
     // Content
-    ctx.fillStyle = '#e4e8f2'
+    ctx.fillStyle = '#eeeeff'
     ctx.font = '48px sans-serif'
     const lines = text.split('\n')
     lines.forEach((line, i) => {
       if (line.includes('━')) {
-        ctx.fillStyle = '#252a38'
+        ctx.fillStyle = '#1e1e3c'
         ctx.fillRect(80, 260 + i * 80 - 10, 920, 2)
       } else {
-        ctx.fillStyle = line.startsWith('🏆') ? '#f472b6' : '#e4e8f2'
+        ctx.fillStyle = line.startsWith('🏆') ? '#f472b6' : '#eeeeff'
         ctx.fillText(line, 540, 300 + i * 80)
       }
     })
 
     // Footer
-    ctx.fillStyle = '#636b84'
+    ctx.fillStyle = '#7878a8'
     ctx.font = '36px sans-serif'
     ctx.fillText('#PadelParty', 540, 1820)
 
@@ -247,7 +247,7 @@ function ScoreZone({ team, onClick }: { team: TeamPlayer; onClick: (e: React.Mou
 
   const isA = team === 'A'
   const tData = isA ? state.teamA : state.teamB
-  const color = isA ? '#38bdf8' : '#fb7185'
+  const color = isA ? '#38bdf8' : '#f97316'
   const bg = isA ? 'rgba(56,189,248,0.06)' : 'rgba(251,113,133,0.06)'
   const rawPoints = isA ? state.gameScore.a : state.gameScore.b
   const isTb = state.gameScore.isTiebreak
@@ -289,7 +289,7 @@ function ScoreZone({ team, onClick }: { team: TeamPlayer; onClick: (e: React.Mou
       {/* Team name + serve indicator */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
         {teamServing && (
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#bef264', boxShadow: '0 0 6px #bef264', flexShrink: 0 }} className="pulse-live" />
+          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 6px #bef264', flexShrink: 0 }} className="pulse-live" />
         )}
         <span style={{ fontSize: 11, fontWeight: 800, color, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
           TEAM {team}
@@ -297,9 +297,9 @@ function ScoreZone({ team, onClick }: { team: TeamPlayer; onClick: (e: React.Mou
       </div>
       {/* Player names */}
       <div style={{ textAlign: 'center', marginBottom: 10 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#e4e8f2', lineHeight: 1.3 }}>{tData.player1}</div>
-        <div style={{ fontSize: 11, color: '#636b84', fontWeight: 500 }}>&</div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#e4e8f2', lineHeight: 1.3 }}>{tData.player2}</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#eeeeff', lineHeight: 1.3 }}>{tData.player1}</div>
+        <div style={{ fontSize: 11, color: '#7878a8', fontWeight: 500 }}>&</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#eeeeff', lineHeight: 1.3 }}>{tData.player2}</div>
       </div>
       {/* Big score */}
       <div style={{ fontSize: 64, fontFamily: '"IBM Plex Mono"', fontWeight: 700, color, lineHeight: 1, marginBottom: 12 }}
@@ -311,7 +311,7 @@ function ScoreZone({ team, onClick }: { team: TeamPlayer; onClick: (e: React.Mou
         {setScores.map(s => (
           <span key={String(s.key)} style={{
             fontFamily: '"IBM Plex Mono"', fontSize: 15, fontWeight: s.current ? 700 : 400,
-            color: s.current ? color : '#636b84', opacity: s.current ? 1 : 0.7,
+            color: s.current ? color : '#7878a8', opacity: s.current ? 1 : 0.7,
           }}>
             {s.g}
           </span>
@@ -372,13 +372,13 @@ function MatchCompleteOverlay({ onDone, onRematch }: { onDone: () => void; onRem
         style={{ textAlign: 'center', width: '100%', maxWidth: 320 }}
       >
         <div style={{ fontSize: 56, marginBottom: 12 }}>🏆</div>
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#bef264', marginBottom: 4 }}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: '#a78bfa', marginBottom: 4 }}>
           {winPair}
         </div>
-        <div style={{ fontSize: 14, color: '#636b84', marginBottom: 20 }}>def. {losePair}</div>
+        <div style={{ fontSize: 14, color: '#7878a8', marginBottom: 20 }}>def. {losePair}</div>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 24 }}>
           {state.sets.map((s, i) => (
-            <span key={i} style={{ fontFamily: '"IBM Plex Mono"', fontSize: 18, fontWeight: 600, color: '#e4e8f2' }}>
+            <span key={i} style={{ fontFamily: '"IBM Plex Mono"', fontSize: 18, fontWeight: 600, color: '#eeeeff' }}>
               {s[0]}-{s[1]}{i < state.sets.length - 1 ? ' ' : ''}
             </span>
           ))}
@@ -390,7 +390,7 @@ function MatchCompleteOverlay({ onDone, onRematch }: { onDone: () => void; onRem
             width: '100%', padding: '13px', marginBottom: 10,
             background: '#1e222e', border: '1px solid #252a38',
             borderRadius: 12, cursor: 'pointer',
-            color: '#e4e8f2', fontSize: 14, fontWeight: 700, fontFamily: '"DM Sans"',
+            color: '#eeeeff', fontSize: 14, fontWeight: 700, fontFamily: '"DM Sans"',
           }}
         >
           📤 Share Result
@@ -400,9 +400,9 @@ function MatchCompleteOverlay({ onDone, onRematch }: { onDone: () => void; onRem
           onClick={onRematch}
           style={{
             width: '100%', padding: '13px', marginBottom: 10,
-            background: '#161922', border: '1px solid #252a38',
+            background: '#131428', border: '1px solid #252a38',
             borderRadius: 12, cursor: 'pointer',
-            color: '#bef264', fontSize: 14, fontWeight: 700, fontFamily: '"DM Sans"',
+            color: '#a78bfa', fontSize: 14, fontWeight: 700, fontFamily: '"DM Sans"',
           }}
         >
           🔁 Rematch
@@ -411,9 +411,9 @@ function MatchCompleteOverlay({ onDone, onRematch }: { onDone: () => void; onRem
           onClick={onDone}
           style={{
             width: '100%', padding: '14px',
-            background: '#bef264', border: 'none',
+            background: '#a78bfa', border: 'none',
             borderRadius: 12, cursor: 'pointer',
-            color: '#08090d', fontSize: 15, fontWeight: 800, fontFamily: '"DM Sans"',
+            color: '#07070f', fontSize: 15, fontWeight: 800, fontFamily: '"DM Sans"',
           }}
         >
           Done
@@ -442,10 +442,10 @@ function PlayerSelector({
           onClick={() => onSelect(p.name, p.team)}
           style={{
             padding: '7px 12px',
-            background: selected === p.name ? (p.team === 'A' ? '#38bdf8' : '#fb7185') : '#161922',
-            border: `1px solid ${selected === p.name ? (p.team === 'A' ? '#38bdf8' : '#fb7185') : '#252a38'}`,
+            background: selected === p.name ? (p.team === 'A' ? '#38bdf8' : '#f97316') : '#131428',
+            border: `1px solid ${selected === p.name ? (p.team === 'A' ? '#38bdf8' : '#f97316') : '#1e1e3c'}`,
             borderRadius: 20, cursor: 'pointer',
-            color: selected === p.name ? '#08090d' : '#949cb4',
+            color: selected === p.name ? '#07070f' : '#7878a8',
             fontSize: 12, fontWeight: 700,
           }}
         >
@@ -492,7 +492,7 @@ function DrinkOverlay({ event, onDismiss }: { event: DrinkEvent; onDismiss: () =
         }}>
           {event.reason}
         </div>
-        <div style={{ fontSize: 22, fontWeight: 900, color: '#e4e8f2', marginBottom: 8, lineHeight: 1.3 }}>
+        <div style={{ fontSize: 22, fontWeight: 900, color: '#eeeeff', marginBottom: 8, lineHeight: 1.3 }}>
           {event.players.join(' & ')}
         </div>
         <div style={{
@@ -507,7 +507,7 @@ function DrinkOverlay({ event, onDismiss }: { event: DrinkEvent; onDismiss: () =
             {event.isFinish ? '🥂 FINISH YOUR DRINK!' : `🍺 ${event.sips} SIP${event.sips !== 1 ? 'S' : ''}!`}
           </span>
         </div>
-        <div style={{ fontSize: 12, color: '#636b84' }}>Tap anywhere to dismiss</div>
+        <div style={{ fontSize: 12, color: '#7878a8' }}>Tap anywhere to dismiss</div>
       </motion.div>
     </motion.div>
   )
@@ -707,7 +707,7 @@ export function ScorePage() {
 
   const handlePoint = useCallback((team: TeamPlayer, e: React.MouseEvent<HTMLDivElement>) => {
     if (!state || state.status === 'complete') return
-    createRipple(e, team === 'A' ? '#38bdf8' : '#fb7185')
+    createRipple(e, team === 'A' ? '#38bdf8' : '#f97316')
     addPoint(team)
   }, [state, addPoint])
 
@@ -742,10 +742,10 @@ export function ScorePage() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, gap: 16, minHeight: 320 }}>
         <div style={{ fontSize: 48 }}>🎾</div>
-        <div style={{ color: '#949cb4', fontSize: 16, fontWeight: 600, textAlign: 'center' }}>No active match</div>
+        <div style={{ color: '#7878a8', fontSize: 16, fontWeight: 600, textAlign: 'center' }}>No active match</div>
         <button
           onClick={() => setNewMatchOpen(true)}
-          style={{ padding: '14px 28px', background: '#bef264', border: 'none', borderRadius: 12, cursor: 'pointer', color: '#08090d', fontSize: 15, fontWeight: 800, fontFamily: '"DM Sans"' }}
+          style={{ padding: '14px 28px', background: '#a78bfa', border: 'none', borderRadius: 12, cursor: 'pointer', color: '#07070f', fontSize: 15, fontWeight: 800, fontFamily: '"DM Sans"' }}
         >
           Start New Match
         </button>
@@ -768,27 +768,27 @@ export function ScorePage() {
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '8px 12px 80px' }}>
         {/* Top bar: timer + controls */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 13, color: '#636b84' }}>⏱ {elapsedStr}</span>
+          <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 13, color: '#7878a8' }}>⏱ {elapsedStr}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setScorekeeperMode(false)}
-              style={{ padding: '6px 12px', borderRadius: 8, background: '#161922', border: '1px solid #252a38', color: '#636b84', fontSize: 12, cursor: 'pointer' }}>
+              style={{ padding: '6px 12px', borderRadius: 8, background: '#131428', border: '1px solid #252a38', color: '#7878a8', fontSize: 12, cursor: 'pointer' }}>
               Full UI
             </button>
             <button onClick={undo} disabled={history.length === 0}
-              style={{ width: 36, height: 36, borderRadius: '50%', background: '#161922', border: '1px solid #252a38', cursor: history.length ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: history.length ? 1 : 0.35 }}>
-              <span style={{ fontSize: 16, color: '#e4e8f2' }}>↩</span>
+              style={{ width: 36, height: 36, borderRadius: '50%', background: '#131428', border: '1px solid #252a38', cursor: history.length ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: history.length ? 1 : 0.35 }}>
+              <span style={{ fontSize: 16, color: '#eeeeff' }}>↩</span>
             </button>
             <button onClick={() => setShowEndConfirm(true)}
-              style={{ width: 36, height: 36, borderRadius: '50%', background: '#161922', border: '1px solid #252a38', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 16, color: '#fb7185' }}>✕</span>
+              style={{ width: 36, height: 36, borderRadius: '50%', background: '#131428', border: '1px solid #252a38', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 16, color: '#f97316' }}>✕</span>
             </button>
           </div>
         </div>
 
         {/* Serve indicator */}
-        <div style={{ textAlign: 'center', fontSize: 11, color: '#636b84', marginBottom: 8 }}>
-          Serving: <span style={{ color: '#bef264', fontWeight: 700 }}>{serverName}</span>
-          {isGP && <span style={{ marginLeft: 8, background: '#fbbf24', color: '#08090d', padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 800 }}>GOLDEN</span>}
+        <div style={{ textAlign: 'center', fontSize: 11, color: '#7878a8', marginBottom: 8 }}>
+          Serving: <span style={{ color: '#a78bfa', fontWeight: 700 }}>{serverName}</span>
+          {isGP && <span style={{ marginLeft: 8, background: '#fbbf24', color: '#07070f', padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 800 }}>GOLDEN</span>}
         </div>
 
         {/* Big tap zones */}
@@ -803,14 +803,14 @@ export function ScorePage() {
             }}
           >
             <div style={{ fontSize: 11, fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>TEAM A</div>
-            <div style={{ fontSize: 14, color: '#949cb4', marginBottom: 4 }}>{state.teamA.player1}</div>
-            <div style={{ fontSize: 12, color: '#636b84' }}>{state.teamA.player2}</div>
+            <div style={{ fontSize: 14, color: '#7878a8', marginBottom: 4 }}>{state.teamA.player1}</div>
+            <div style={{ fontSize: 12, color: '#7878a8' }}>{state.teamA.player2}</div>
             <div style={{ fontSize: 80, fontFamily: '"IBM Plex Mono"', fontWeight: 700, color: '#38bdf8', lineHeight: 1, margin: '12px 0' }}>
               {state.gameScore.isTiebreak ? state.gameScore.a : displayPoints(state.gameScore.a, false)}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               {[...state.sets.map(s => s[0]), state.currentSet[0]].map((g, i) => (
-                <span key={i} style={{ fontFamily: '"IBM Plex Mono"', fontSize: 22, color: i === state.sets.length ? '#38bdf8' : '#636b84', fontWeight: i === state.sets.length ? 700 : 400 }}>{g}</span>
+                <span key={i} style={{ fontFamily: '"IBM Plex Mono"', fontSize: 22, color: i === state.sets.length ? '#38bdf8' : '#7878a8', fontWeight: i === state.sets.length ? 700 : 400 }}>{g}</span>
               ))}
             </div>
           </div>
@@ -823,15 +823,15 @@ export function ScorePage() {
               cursor: 'pointer', userSelect: 'none', position: 'relative', overflow: 'hidden',
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#fb7185', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>TEAM B</div>
-            <div style={{ fontSize: 14, color: '#949cb4', marginBottom: 4 }}>{state.teamB.player1}</div>
-            <div style={{ fontSize: 12, color: '#636b84' }}>{state.teamB.player2}</div>
-            <div style={{ fontSize: 80, fontFamily: '"IBM Plex Mono"', fontWeight: 700, color: '#fb7185', lineHeight: 1, margin: '12px 0' }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>TEAM B</div>
+            <div style={{ fontSize: 14, color: '#7878a8', marginBottom: 4 }}>{state.teamB.player1}</div>
+            <div style={{ fontSize: 12, color: '#7878a8' }}>{state.teamB.player2}</div>
+            <div style={{ fontSize: 80, fontFamily: '"IBM Plex Mono"', fontWeight: 700, color: '#f97316', lineHeight: 1, margin: '12px 0' }}>
               {state.gameScore.isTiebreak ? state.gameScore.b : displayPoints(state.gameScore.b, false)}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               {[...state.sets.map(s => s[1]), state.currentSet[1]].map((g, i) => (
-                <span key={i} style={{ fontFamily: '"IBM Plex Mono"', fontSize: 22, color: i === state.sets.length ? '#fb7185' : '#636b84', fontWeight: i === state.sets.length ? 700 : 400 }}>{g}</span>
+                <span key={i} style={{ fontFamily: '"IBM Plex Mono"', fontSize: 22, color: i === state.sets.length ? '#f97316' : '#7878a8', fontWeight: i === state.sets.length ? 700 : 400 }}>{g}</span>
               ))}
             </div>
           </div>
@@ -845,11 +845,11 @@ export function ScorePage() {
                 onClick={() => setShowEndConfirm(false)}
                 style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 150 }} />
               <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-                style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: '#0f1117', border: '1px solid #252a38', borderRadius: 16, padding: 24, zIndex: 151, width: '80%', maxWidth: 300 }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#e4e8f2', marginBottom: 8 }}>End Match?</div>
+                style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 16, padding: 24, zIndex: 151, width: '80%', maxWidth: 300 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#eeeeff', marginBottom: 8 }}>End Match?</div>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <button onClick={() => setShowEndConfirm(false)} style={{ flex: 1, padding: '12px', background: '#161922', border: '1px solid #252a38', borderRadius: 10, cursor: 'pointer', color: '#949cb4', fontSize: 14, fontWeight: 600 }}>Cancel</button>
-                  <button onClick={handleEndMatch} style={{ flex: 1, padding: '12px', background: '#fb7185', border: 'none', borderRadius: 10, cursor: 'pointer', color: '#08090d', fontSize: 14, fontWeight: 800 }}>End</button>
+                  <button onClick={() => setShowEndConfirm(false)} style={{ flex: 1, padding: '12px', background: '#131428', border: '1px solid #252a38', borderRadius: 10, cursor: 'pointer', color: '#7878a8', fontSize: 14, fontWeight: 600 }}>Cancel</button>
+                  <button onClick={handleEndMatch} style={{ flex: 1, padding: '12px', background: '#f97316', border: 'none', borderRadius: 10, cursor: 'pointer', color: '#07070f', fontSize: 14, fontWeight: 800 }}>End</button>
                 </div>
               </motion.div>
             </>
@@ -872,14 +872,14 @@ export function ScorePage() {
 
       {/* Top bar: timer + mode toggle + mic */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 12, color: '#636b84', flex: 1 }}>⏱ {elapsedStr}</span>
+        <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 12, color: '#7878a8', flex: 1 }}>⏱ {elapsedStr}</span>
         {voiceSupported && (
           <button
             onClick={() => { toggleVoice(); if (navigator.vibrate) navigator.vibrate(10) }}
             style={{
               padding: '6px 10px', borderRadius: 8, border: 'none',
-              background: isListening ? '#dc2626' : '#161922',
-              color: isListening ? '#fff' : '#636b84',
+              background: isListening ? '#dc2626' : '#131428',
+              color: isListening ? '#fff' : '#7878a8',
               fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
             }}
           >
@@ -888,51 +888,51 @@ export function ScorePage() {
         )}
         <button
           onClick={() => setScorekeeperMode(true)}
-          style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #252a38', background: '#161922', color: '#636b84', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+          style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #252a38', background: '#131428', color: '#7878a8', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
         >
           {t('scorekeeperMode')}
         </button>
       </div>
 
       {/* Score Card */}
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, overflow: 'hidden', position: 'relative', marginBottom: 12 }}>
+      <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, overflow: 'hidden', position: 'relative', marginBottom: 12 }}>
         {/* Controls */}
         <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 7, zIndex: 10 }}>
           <button onClick={undo} disabled={history.length === 0}
-            style={{ width: 32, height: 32, borderRadius: '50%', background: '#161922', border: '1px solid #252a38', cursor: history.length ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: history.length ? 1 : 0.35 }}>
-            <span style={{ fontSize: 14, color: '#e4e8f2' }}>↩</span>
+            style={{ width: 32, height: 32, borderRadius: '50%', background: '#131428', border: '1px solid #252a38', cursor: history.length ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: history.length ? 1 : 0.35 }}>
+            <span style={{ fontSize: 14, color: '#eeeeff' }}>↩</span>
           </button>
           <button onClick={() => setShowEndConfirm(true)}
-            style={{ width: 32, height: 32, borderRadius: '50%', background: '#161922', border: '1px solid #252a38', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 14, color: '#fb7185' }}>✕</span>
+            style={{ width: 32, height: 32, borderRadius: '50%', background: '#131428', border: '1px solid #252a38', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: 14, color: '#f97316' }}>✕</span>
           </button>
         </div>
 
         {/* Zones */}
         <div style={{ display: 'flex', borderBottom: '1px solid #252a38' }}>
           <ScoreZone team="A" onClick={e => handlePoint('A', e)} />
-          <div style={{ width: 1, background: '#252a38', flexShrink: 0 }} />
+          <div style={{ width: 1, background: '#1e1e3c', flexShrink: 0 }} />
           <ScoreZone team="B" onClick={e => handlePoint('B', e)} />
         </div>
 
         {/* Hint + golden point badge */}
         <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           {isGP && (
-            <div style={{ background: '#fbbf24', borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 800, color: '#08090d', letterSpacing: '0.08em' }}>
+            <div style={{ background: '#fbbf24', borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 800, color: '#07070f', letterSpacing: '0.08em' }}>
               GOLDEN POINT
             </div>
           )}
-          <div style={{ fontSize: 12, color: '#636b84' }}>
-            Tap side to score · Serving: <span style={{ color: '#bef264', fontWeight: 600 }}>{serverName}</span>
+          <div style={{ fontSize: 12, color: '#7878a8' }}>
+            Tap side to score · Serving: <span style={{ color: '#a78bfa', fontWeight: 600 }}>{serverName}</span>
           </div>
           {/* Serve rotation */}
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             {state.serverOrder.map((name, i) => (
               <span key={name} style={{
                 fontSize: 10, fontWeight: 700,
-                color: i === state.serverIndex ? '#bef264' : '#636b84',
+                color: i === state.serverIndex ? '#a78bfa' : '#7878a8',
                 padding: '1px 4px',
-                background: i === state.serverIndex ? 'rgba(190,242,100,0.12)' : 'transparent',
+                background: i === state.serverIndex ? 'rgba(167,139,250,0.12)' : 'transparent',
                 borderRadius: 3,
               }}>
                 {name.split(' ')[0]}
@@ -951,7 +951,7 @@ export function ScorePage() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontSize: 11, fontWeight: 800, color: '#f472b6', textTransform: 'uppercase', letterSpacing: '0.07em' }}>🎉 Party Mode</span>
-            <button onClick={resetDrinks} style={{ fontSize: 10, color: '#636b84', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>Reset</button>
+            <button onClick={resetDrinks} style={{ fontSize: 10, color: '#7878a8', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>Reset</button>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {allPlayers.map(p => {
@@ -963,8 +963,8 @@ export function ScorePage() {
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}>
                   <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: p.team === 'A' ? '#38bdf8' : '#fb7185' }}>{p.name.split(' ')[0]}</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: '#e4e8f2' }}>{sips}<span style={{ fontSize: 10, color: '#636b84', fontWeight: 400, marginLeft: 3 }}>sips</span></div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: p.team === 'A' ? '#38bdf8' : '#f97316' }}>{p.name.split(' ')[0]}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: '#eeeeff' }}>{sips}<span style={{ fontSize: 10, color: '#7878a8', fontWeight: 400, marginLeft: 3 }}>sips</span></div>
                   </div>
                   <button
                     onClick={() => addDrinks(p.name, 1)}
@@ -978,13 +978,13 @@ export function ScorePage() {
       )}
 
       {/* Shot Tracker */}
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 14, marginBottom: 12 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+      <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: 14, marginBottom: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
           Shot Tracker
         </div>
         {/* Inline player selector — tap shot = instant log */}
         <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 10, color: '#636b84', marginBottom: 5, fontWeight: 600 }}>Who hit it?</div>
+          <div style={{ fontSize: 10, color: '#7878a8', marginBottom: 5, fontWeight: 600 }}>Who hit it?</div>
           <PlayerSelector players={allPlayers} selected={selectedPlayer} onSelect={(name) => setSelectedPlayer(name)} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -1000,15 +1000,15 @@ export function ScorePage() {
                     className={flashing ? 'flash-lime' : ''}
                     style={{
                       flex: 1, padding: '9px 2px',
-                      background: '#161922',
-                      border: `1px solid ${flashing ? '#bef264' : '#252a38'}`,
+                      background: '#131428',
+                      border: `1px solid ${flashing ? '#a78bfa' : '#1e1e3c'}`,
                       borderRadius: 8, cursor: 'pointer',
                       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                       minHeight: 50,
                     }}
                   >
                     <span style={{ fontSize: 15 }}>{btn.emoji}</span>
-                    <span style={{ fontSize: 9, color: '#636b84', fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>{btn.label}</span>
+                    <span style={{ fontSize: 9, color: '#7878a8', fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>{btn.label}</span>
                   </button>
                 )
               })}
@@ -1019,11 +1019,11 @@ export function ScorePage() {
         {/* Rally log */}
         {currentMatch && currentMatch.rallies.length > 0 && (
           <div style={{ marginTop: 10, maxHeight: 120, overflowY: 'auto' }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: '#636b84', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recent</div>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#7878a8', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recent</div>
             {[...currentMatch.rallies].reverse().slice(0, 15).map(r => (
               <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid rgba(37,42,56,0.4)', alignItems: 'center' }}>
-                <span style={{ fontSize: 11, color: '#949cb4' }}>{r.shot.replace('_', ' ')} {r.type.replace('_', ' ')}</span>
-                <span style={{ fontSize: 11, color: r.team === 'A' ? '#38bdf8' : '#fb7185', fontWeight: 600 }}>{r.player}</span>
+                <span style={{ fontSize: 11, color: '#7878a8' }}>{r.shot.replace('_', ' ')} {r.type.replace('_', ' ')}</span>
+                <span style={{ fontSize: 11, color: r.team === 'A' ? '#38bdf8' : '#f97316', fontWeight: 600 }}>{r.player}</span>
               </div>
             ))}
           </div>
@@ -1039,17 +1039,17 @@ export function ScorePage() {
               style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 150, backdropFilter: 'blur(4px)' }} />
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: '#0f1117', border: '1px solid #252a38', borderRadius: 16, padding: 24, zIndex: 151, width: '80%', maxWidth: 300 }}
+              style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 16, padding: 24, zIndex: 151, width: '80%', maxWidth: 300 }}
             >
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#e4e8f2', marginBottom: 8 }}>End Match?</div>
-              <div style={{ fontSize: 13, color: '#636b84', marginBottom: 20 }}>The current leader will be recorded as the winner.</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#eeeeff', marginBottom: 8 }}>End Match?</div>
+              <div style={{ fontSize: 13, color: '#7878a8', marginBottom: 20 }}>The current leader will be recorded as the winner.</div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => setShowEndConfirm(false)}
-                  style={{ flex: 1, padding: '12px', background: '#161922', border: '1px solid #252a38', borderRadius: 10, cursor: 'pointer', color: '#949cb4', fontSize: 14, fontWeight: 600 }}>
+                  style={{ flex: 1, padding: '12px', background: '#131428', border: '1px solid #252a38', borderRadius: 10, cursor: 'pointer', color: '#7878a8', fontSize: 14, fontWeight: 600 }}>
                   Cancel
                 </button>
                 <button onClick={handleEndMatch}
-                  style={{ flex: 1, padding: '12px', background: '#fb7185', border: 'none', borderRadius: 10, cursor: 'pointer', color: '#08090d', fontSize: 14, fontWeight: 800 }}>
+                  style={{ flex: 1, padding: '12px', background: '#f97316', border: 'none', borderRadius: 10, cursor: 'pointer', color: '#07070f', fontSize: 14, fontWeight: 800 }}>
                   End Match
                 </button>
               </div>

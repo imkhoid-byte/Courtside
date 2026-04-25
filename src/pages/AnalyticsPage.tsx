@@ -37,9 +37,9 @@ function OverviewTab({ matches, myName }: { matches: Match[]; myName: string }) 
   const totalDF = myMatches.reduce((s, m) => s + m.stats[getTeam(m)].doubleFaults, 0)
 
   const pieData = [
-    { name: 'Aces', value: totalAces, color: '#bef264' },
+    { name: 'Aces', value: totalAces, color: '#a78bfa' },
     { name: 'Smashes', value: totalSmashes, color: '#38bdf8' },
-    { name: 'UE', value: totalUE, color: '#fb7185' },
+    { name: 'UE', value: totalUE, color: '#f97316' },
     { name: 'DF', value: totalDF, color: '#fbbf24' },
   ].filter(d => d.value > 0)
 
@@ -58,16 +58,16 @@ function OverviewTab({ matches, myName }: { matches: Match[]; myName: string }) 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Win/Loss bar chart */}
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Win / Loss by Month</div>
+      <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#7878a8', marginBottom: 12 }}>Win / Loss by Month</div>
         {winLossData.length === 0 ? (
-          <div style={{ color: '#636b84', fontSize: 13, padding: '24px 0', textAlign: 'center' }}>No match data</div>
+          <div style={{ color: '#7878a8', fontSize: 13, padding: '24px 0', textAlign: 'center' }}>No match data</div>
         ) : (
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={winLossData} style={DARK_CHART_STYLE} barCategoryGap="30%">
-              <XAxis dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="name" tick={{ fill: '#7878a8', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis hide />
-              <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: '#131428', border: '1px solid #252a38', borderRadius: 8, color: '#eeeeff', fontSize: 12 }} />
               <Bar dataKey="wins" fill="#34d399" radius={[4, 4, 0, 0]} name="Wins" />
               <Bar dataKey="losses" fill="#fb7185" radius={[4, 4, 0, 0]} name="Losses" />
             </BarChart>
@@ -77,8 +77,8 @@ function OverviewTab({ matches, myName }: { matches: Match[]; myName: string }) 
 
       {/* Points donut */}
       {pieData.length > 0 && (
-        <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Points Breakdown</div>
+        <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#7878a8', marginBottom: 12 }}>Points Breakdown</div>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             <PieChart width={120} height={120}>
               <Pie data={pieData} cx={55} cy={55} innerRadius={30} outerRadius={52} dataKey="value" paddingAngle={3}>
@@ -89,8 +89,8 @@ function OverviewTab({ matches, myName }: { matches: Match[]; myName: string }) 
               {pieData.map(d => (
                 <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, color: '#949cb4', flex: 1 }}>{d.name}</span>
-                  <span style={{ fontSize: 12, fontFamily: '"IBM Plex Mono"', color: '#e4e8f2', fontWeight: 600 }}>{d.value}</span>
+                  <span style={{ fontSize: 12, color: '#7878a8', flex: 1 }}>{d.name}</span>
+                  <span style={{ fontSize: 12, fontFamily: '"IBM Plex Mono"', color: '#eeeeff', fontWeight: 600 }}>{d.value}</span>
                 </div>
               ))}
             </div>
@@ -101,13 +101,13 @@ function OverviewTab({ matches, myName }: { matches: Match[]; myName: string }) 
       {/* Stats grid */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {[
-          { label: 'Avg Aces/Match', value: avg(totalAces), color: '#bef264' },
-          { label: 'Avg UE/Match', value: avg(totalUE), color: '#fb7185' },
+          { label: 'Avg Aces/Match', value: avg(totalAces), color: '#a78bfa' },
+          { label: 'Avg UE/Match', value: avg(totalUE), color: '#f97316' },
           { label: 'Best Surface', value: bestSurface, color: '#38bdf8' },
           { label: 'Total Smashes', value: String(totalSmashes), color: '#34d399' },
         ].map(s => (
-          <div key={s.label} style={{ flex: '1 0 40%', background: '#0f1117', border: '1px solid #252a38', borderRadius: 12, padding: 14 }}>
-            <div style={{ fontSize: 10, color: '#636b84', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{s.label}</div>
+          <div key={s.label} style={{ flex: '1 0 40%', background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 12, padding: 14 }}>
+            <div style={{ fontSize: 10, color: '#7878a8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{s.label}</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: s.color }}>{s.value}</div>
           </div>
         ))}
@@ -133,9 +133,9 @@ function ShotAnalysisTab({ matches, myName }: { matches: Match[]; myName: string
 
   if (myRallies.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px 0', color: '#636b84' }}>
+      <div style={{ textAlign: 'center', padding: '40px 0', color: '#7878a8' }}>
         <div style={{ fontSize: 32, marginBottom: 8 }}>🎾</div>
-        <div style={{ fontSize: 15, fontWeight: 600, color: '#949cb4', marginBottom: 4 }}>No Shot Data</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: '#7878a8', marginBottom: 4 }}>No Shot Data</div>
         <div style={{ fontSize: 13 }}>Use the Shot Tracker during matches to see analysis here</div>
       </div>
     )
@@ -161,26 +161,26 @@ function ShotAnalysisTab({ matches, myName }: { matches: Match[]; myName: string
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Shot Distribution</div>
+      <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#7878a8', marginBottom: 12 }}>Shot Distribution</div>
         <ResponsiveContainer width="100%" height={Math.max(160, shotData.length * 28)}>
           <BarChart data={shotData} layout="vertical" style={DARK_CHART_STYLE}>
             <XAxis type="number" hide />
-            <YAxis type="category" dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
-            <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
-            <Bar dataKey="value" fill="#bef264" radius={[0, 4, 4, 0]} name="Shots" />
+            <YAxis type="category" dataKey="name" tick={{ fill: '#7878a8', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
+            <Tooltip contentStyle={{ background: '#131428', border: '1px solid #252a38', borderRadius: 8, color: '#eeeeff', fontSize: 12 }} />
+            <Bar dataKey="value" fill="#a78bfa" radius={[0, 4, 4, 0]} name="Shots" />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
       {comparison.length > 0 && (
-        <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#949cb4', marginBottom: 12 }}>Winners vs Errors by Shot</div>
+        <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, padding: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#7878a8', marginBottom: 12 }}>Winners vs Errors by Shot</div>
           <ResponsiveContainer width="100%" height={Math.max(140, comparison.length * 32)}>
             <BarChart data={comparison} layout="vertical" style={DARK_CHART_STYLE}>
               <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" tick={{ fill: '#636b84', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
-              <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 8, color: '#e4e8f2', fontSize: 12 }} />
+              <YAxis type="category" dataKey="name" tick={{ fill: '#7878a8', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
+              <Tooltip contentStyle={{ background: '#131428', border: '1px solid #252a38', borderRadius: 8, color: '#eeeeff', fontSize: 12 }} />
               <Bar dataKey="winners" fill="#34d399" radius={[0, 4, 4, 0]} name="Winners" />
               <Bar dataKey="errors" fill="#fb7185" radius={[0, 4, 4, 0]} name="Errors" />
             </BarChart>
@@ -215,7 +215,7 @@ function HeadToHeadTab({ matches, myName }: { matches: Match[]; myName: string }
 
   if (sorted.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px 0', color: '#636b84' }}>
+      <div style={{ textAlign: 'center', padding: '40px 0', color: '#7878a8' }}>
         <div style={{ fontSize: 32, marginBottom: 8 }}>🤝</div>
         <div style={{ fontSize: 14 }}>Play matches to see head-to-head records</div>
       </div>
@@ -230,19 +230,19 @@ function HeadToHeadTab({ matches, myName }: { matches: Match[]; myName: string }
         const favorable = winPct >= 50
         return (
           <div key={pair} style={{
-            background: '#0f1117', border: '1px solid #252a38', borderRadius: 12,
+            background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 12,
             padding: '12px 14px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#e4e8f2', flex: 1, marginRight: 8 }}>{pair}</span>
-              <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 13, fontWeight: 600, color: favorable ? '#34d399' : '#fb7185', flexShrink: 0 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#eeeeff', flex: 1, marginRight: 8 }}>{pair}</span>
+              <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 13, fontWeight: 600, color: favorable ? '#34d399' : '#f97316', flexShrink: 0 }}>
                 {rec.wins}–{rec.losses}
               </span>
             </div>
-            <div style={{ height: 4, background: '#252a38', borderRadius: 2 }}>
-              <div style={{ height: '100%', width: `${winPct}%`, background: favorable ? '#34d399' : '#fb7185', borderRadius: 2 }} />
+            <div style={{ height: 4, background: '#1e1e3c', borderRadius: 2 }}>
+              <div style={{ height: '100%', width: `${winPct}%`, background: favorable ? '#34d399' : '#f97316', borderRadius: 2 }} />
             </div>
-            <div style={{ fontSize: 11, color: '#636b84', marginTop: 4 }}>{winPct}% win rate · {total} match{total !== 1 ? 'es' : ''}</div>
+            <div style={{ fontSize: 11, color: '#7878a8', marginTop: 4 }}>{winPct}% win rate · {total} match{total !== 1 ? 'es' : ''}</div>
           </div>
         )
       })}
@@ -258,9 +258,9 @@ function PartnerChemistryTab({ matches, myName }: { matches: Match[]; myName: st
 
   if (myMatches.length < 1) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px 0', color: '#636b84' }}>
+      <div style={{ textAlign: 'center', padding: '40px 0', color: '#7878a8' }}>
         <div style={{ fontSize: 32, marginBottom: 8 }}>🤜🤛</div>
-        <div style={{ fontSize: 15, fontWeight: 600, color: '#949cb4', marginBottom: 4 }}>No Partner Data Yet</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: '#7878a8', marginBottom: 4 }}>No Partner Data Yet</div>
         <div style={{ fontSize: 13 }}>Play matches to see your partner chemistry</div>
       </div>
     )
@@ -295,7 +295,7 @@ function PartnerChemistryTab({ matches, myName }: { matches: Match[]; myName: st
       {/* Best Duo card */}
       {bestName && bestStats && (
         <div style={{
-          background: 'linear-gradient(135deg, rgba(52,211,153,0.08), rgba(190,242,100,0.04))',
+          background: 'linear-gradient(135deg, rgba(52,211,153,0.08), rgba(167,139,250,0.04))',
           border: '1px solid rgba(52,211,153,0.3)',
           borderRadius: 14, padding: 16,
         }}>
@@ -305,14 +305,14 @@ function PartnerChemistryTab({ matches, myName }: { matches: Match[]; myName: st
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
               width: 44, height: 44, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #34d399, #bef264)',
+              background: 'linear-gradient(135deg, #4ade80, #38bdf8)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}>
-              <span style={{ fontSize: 18, fontWeight: 800, color: '#08090d' }}>{bestName[0]?.toUpperCase()}</span>
+              <span style={{ fontSize: 18, fontWeight: 800, color: '#07070f' }}>{bestName[0]?.toUpperCase()}</span>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 16, fontWeight: 800, color: '#e4e8f2', marginBottom: 2 }}>{myName} & {bestName}</div>
-              <div style={{ fontSize: 12, color: '#636b84' }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#eeeeff', marginBottom: 2 }}>{myName} & {bestName}</div>
+              <div style={{ fontSize: 12, color: '#7878a8' }}>
                 {bestStats.wins}W – {bestStats.total - bestStats.wins}L · {Math.round((bestStats.wins / bestStats.total) * 100)}% win rate
               </div>
             </div>
@@ -324,7 +324,7 @@ function PartnerChemistryTab({ matches, myName }: { matches: Match[]; myName: st
       )}
 
       {/* Partner list */}
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
         All Partners
       </div>
       {sorted.map(([partner, stats]) => {
@@ -332,34 +332,34 @@ function PartnerChemistryTab({ matches, myName }: { matches: Match[]; myName: st
         const isBest = partner === bestName
         return (
           <div key={partner} style={{
-            background: isBest ? 'rgba(52,211,153,0.05)' : '#0f1117',
-            border: `1px solid ${isBest ? 'rgba(52,211,153,0.25)' : '#252a38'}`,
+            background: isBest ? 'rgba(52,211,153,0.05)' : '#0d0d1e',
+            border: `1px solid ${isBest ? 'rgba(52,211,153,0.25)' : '#1e1e3c'}`,
             borderRadius: 12, padding: '12px 14px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{
                   width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-                  background: isBest ? 'linear-gradient(135deg, #34d399, #bef264)' : '#252a38',
+                  background: isBest ? 'linear-gradient(135deg, #4ade80, #38bdf8)' : '#1e1e3c',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: isBest ? '#08090d' : '#636b84' }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: isBest ? '#07070f' : '#7878a8' }}>
                     {partner[0]?.toUpperCase()}
                   </span>
                 </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#e4e8f2' }}>{partner}</div>
-                  <div style={{ fontSize: 11, color: '#636b84' }}>{stats.total} match{stats.total !== 1 ? 'es' : ''}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#eeeeff' }}>{partner}</div>
+                  <div style={{ fontSize: 11, color: '#7878a8' }}>{stats.total} match{stats.total !== 1 ? 'es' : ''}</div>
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 15, fontWeight: 700, color: isBest ? '#34d399' : (winPct >= 50 ? '#e4e8f2' : '#636b84') }}>
+                <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 15, fontWeight: 700, color: isBest ? '#34d399' : (winPct >= 50 ? '#eeeeff' : '#7878a8') }}>
                   {winPct}%
                 </div>
-                <div style={{ fontSize: 11, color: '#636b84' }}>{stats.wins}W–{stats.total - stats.wins}L</div>
+                <div style={{ fontSize: 11, color: '#7878a8' }}>{stats.wins}W–{stats.total - stats.wins}L</div>
               </div>
             </div>
-            <div style={{ height: 3, background: '#252a38', borderRadius: 2 }}>
+            <div style={{ height: 3, background: '#1e1e3c', borderRadius: 2 }}>
               <div style={{ height: '100%', width: `${winPct}%`, background: isBest ? '#34d399' : '#38bdf8', borderRadius: 2 }} />
             </div>
           </div>
@@ -377,11 +377,11 @@ function RankingsTab() {
     getAllPlayerRatings().then(r => { setRatings(r); setLoading(false) })
   }, [])
 
-  if (loading) return <div style={{ padding: 32, textAlign: 'center', color: '#636b84' }}>Loading…</div>
+  if (loading) return <div style={{ padding: 32, textAlign: 'center', color: '#7878a8' }}>Loading…</div>
 
   if (ratings.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px 0', color: '#636b84' }}>
+      <div style={{ textAlign: 'center', padding: '40px 0', color: '#7878a8' }}>
         <div style={{ fontSize: 32, marginBottom: 8 }}>🏅</div>
         <div style={{ fontSize: 14 }}>Play matches to build your rating</div>
       </div>
@@ -392,12 +392,12 @@ function RankingsTab() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ fontSize: 12, color: '#636b84', marginBottom: 4 }}>Player ELO ratings based on match history</div>
+      <div style={{ fontSize: 12, color: '#7878a8', marginBottom: 4 }}>Player ELO ratings based on match history</div>
       {ratings.map((r, i) => {
         const winPct = r.matchCount > 0 ? Math.round((r.winCount / r.matchCount) * 100) : 0
         return (
           <div key={r.name} style={{
-            background: '#0f1117', border: `1px solid ${i === 0 ? 'rgba(251,191,36,0.3)' : '#252a38'}`,
+            background: '#0d0d1e', border: `1px solid ${i === 0 ? 'rgba(251,191,36,0.3)' : '#1e1e3c'}`,
             borderRadius: 12, padding: '12px 14px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
@@ -405,10 +405,10 @@ function RankingsTab() {
                 {i < 3 ? medals[i] : `#${i + 1}`}
               </span>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#e4e8f2' }}>{r.name}</div>
-                <div style={{ fontSize: 11, color: '#636b84' }}>{r.matchCount}M · {winPct}% win rate</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#eeeeff' }}>{r.name}</div>
+                <div style={{ fontSize: 11, color: '#7878a8' }}>{r.matchCount}M · {winPct}% win rate</div>
               </div>
-              <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 22, fontWeight: 800, color: i === 0 ? '#fbbf24' : '#bef264' }}>
+              <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 22, fontWeight: 800, color: i === 0 ? '#fbbf24' : '#a78bfa' }}>
                 {r.elo}
               </div>
             </div>
@@ -417,8 +417,8 @@ function RankingsTab() {
                 <LineChart data={r.history.slice(-10)}>
                   <XAxis dataKey="date" hide />
                   <YAxis domain={['auto', 'auto']} hide />
-                  <Tooltip contentStyle={{ background: '#161922', border: '1px solid #252a38', borderRadius: 6, color: '#e4e8f2', fontSize: 11 }} />
-                  <Line type="monotone" dataKey="elo" stroke="#bef264" strokeWidth={1.5} dot={false} />
+                  <Tooltip contentStyle={{ background: '#131428', border: '1px solid #252a38', borderRadius: 6, color: '#eeeeff', fontSize: 11 }} />
+                  <Line type="monotone" dataKey="elo" stroke="#a78bfa" strokeWidth={1.5} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             )}
@@ -464,7 +464,7 @@ export function AnalyticsPage() {
               background: 'none', border: 'none',
               borderBottom: activeTab === tab ? '2px solid #bef264' : '2px solid transparent',
               cursor: 'pointer',
-              color: activeTab === tab ? '#bef264' : '#636b84',
+              color: activeTab === tab ? '#a78bfa' : '#7878a8',
               fontSize: 13, fontWeight: 600, fontFamily: '"DM Sans"',
               transition: 'color 0.15s',
               whiteSpace: 'nowrap',
@@ -478,7 +478,7 @@ export function AnalyticsPage() {
       {/* Content */}
       <div style={{ padding: '16px 16px 96px' }}>
         {loading ? (
-          <div style={{ padding: 32, textAlign: 'center', color: '#636b84' }}>Loading…</div>
+          <div style={{ padding: 32, textAlign: 'center', color: '#7878a8' }}>Loading…</div>
         ) : (
           <>
             {activeTab === 'Overview' && <OverviewTab matches={matches} myName={me} />}

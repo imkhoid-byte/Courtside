@@ -48,8 +48,8 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
       {opts.map(o => (
         <button key={o} onClick={() => set(o)} style={{
           flex: 1, padding: '9px 4px', borderRadius: 9, border: 'none',
-          background: val === o ? '#bef264' : '#161922',
-          color: val === o ? '#08090d' : '#636b84',
+          background: val === o ? '#a78bfa' : '#131428',
+          color: val === o ? '#07070f' : '#7878a8',
           fontSize: 13, fontWeight: 700, cursor: 'pointer',
         }}>{o}</button>
       ))}
@@ -57,18 +57,18 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
 
   return (
     <div style={{ padding: '16px 16px 100px', overflowY: 'auto' }}>
-      <h2 style={{ fontSize: 22, fontWeight: 900, color: '#e4e8f2', marginBottom: 20 }}>{t('newTournament')}</h2>
+      <h2 style={{ fontSize: 22, fontWeight: 900, color: '#eeeeff', marginBottom: 20 }}>{t('newTournament')}</h2>
 
       {/* Format */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Format</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Format</div>
         <div style={{ display: 'flex', gap: 10 }}>
           {(['americano', 'mexicano'] as TournamentFormat[]).map(f => (
             <button key={f} onClick={() => setFormat(f)} style={{
               flex: 1, padding: '14px', borderRadius: 12,
-              border: `2px solid ${format === f ? '#bef264' : '#252a38'}`,
-              background: format === f ? 'rgba(190,242,100,0.08)' : '#0f1117',
-              color: format === f ? '#bef264' : '#636b84',
+              border: `2px solid ${format === f ? '#a78bfa' : '#1e1e3c'}`,
+              background: format === f ? 'rgba(167,139,250,0.08)' : '#0d0d1e',
+              color: format === f ? '#a78bfa' : '#7878a8',
               fontSize: 14, fontWeight: 700, cursor: 'pointer',
             }}>
               <div>{f === 'americano' ? t('americano') : t('mexicano')}</div>
@@ -82,15 +82,15 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
 
       {/* Tournament name */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
           {t('tournamentName')}
         </div>
         <input
           value={name} onChange={e => setName(e.target.value)}
           placeholder={format === 'americano' ? 'Saturday Americano' : 'Club Mexicano'}
           style={{
-            width: '100%', background: '#161922', border: '1px solid #252a38',
-            borderRadius: 10, padding: '11px 14px', color: '#e4e8f2',
+            width: '100%', background: '#131428', border: '1px solid #252a38',
+            borderRadius: 10, padding: '11px 14px', color: '#eeeeff',
             fontSize: 15, fontFamily: '"DM Sans"', outline: 'none', boxSizing: 'border-box',
           }}
         />
@@ -98,7 +98,7 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
 
       {/* Players */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
           {t('players')} ({validPlayers.length})
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -109,8 +109,8 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
                 onChange={e => updatePlayer(i, e.target.value)}
                 placeholder={`Player ${i + 1}`}
                 style={{
-                  flex: 1, background: '#161922', border: '1px solid #252a38',
-                  borderRadius: 10, padding: '11px 14px', color: '#e4e8f2',
+                  flex: 1, background: '#131428', border: '1px solid #252a38',
+                  borderRadius: 10, padding: '11px 14px', color: '#eeeeff',
                   fontSize: 15, fontFamily: '"DM Sans"', outline: 'none',
                 }}
               />
@@ -119,7 +119,7 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
                   onClick={() => removePlayer(i)}
                   style={{
                     width: 44, borderRadius: 10, border: '1px solid #252a38',
-                    background: '#161922', color: '#fb7185', cursor: 'pointer', fontSize: 18,
+                    background: '#131428', color: '#f97316', cursor: 'pointer', fontSize: 18,
                   }}
                 >
                   ×
@@ -134,7 +134,7 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
             style={{
               width: '100%', marginTop: 8, padding: '10px', borderRadius: 10,
               border: '1px dashed #252a38', background: 'transparent',
-              color: '#636b84', cursor: 'pointer', fontSize: 14, fontWeight: 600,
+              color: '#7878a8', cursor: 'pointer', fontSize: 14, fontWeight: 600,
             }}
           >
             + {t('addPlayer')}
@@ -145,7 +145,7 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
       {/* Rounds + Courts */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
             {t('rounds')} (auto: {numRounds})
           </div>
           <input
@@ -154,14 +154,14 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
             onChange={e => setCustomRounds(e.target.value ? Number(e.target.value) : null)}
             placeholder={String(numRounds)}
             style={{
-              width: '100%', background: '#161922', border: '1px solid #252a38',
-              borderRadius: 10, padding: '11px 14px', color: '#e4e8f2',
+              width: '100%', background: '#131428', border: '1px solid #252a38',
+              borderRadius: 10, padding: '11px 14px', color: '#eeeeff',
               fontSize: 15, fontFamily: '"IBM Plex Mono"', outline: 'none', boxSizing: 'border-box',
             }}
           />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
             {t('courts')}
           </div>
           <input
@@ -169,8 +169,8 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
             value={numCourts}
             onChange={e => setNumCourts(Math.max(1, Number(e.target.value)))}
             style={{
-              width: '100%', background: '#161922', border: '1px solid #252a38',
-              borderRadius: 10, padding: '11px 14px', color: '#e4e8f2',
+              width: '100%', background: '#131428', border: '1px solid #252a38',
+              borderRadius: 10, padding: '11px 14px', color: '#eeeeff',
               fontSize: 15, fontFamily: '"IBM Plex Mono"', outline: 'none', boxSizing: 'border-box',
             }}
           />
@@ -179,25 +179,25 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
 
       {/* Surface */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Surface</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Surface</div>
         {toggle(['Indoor', 'Outdoor', 'Covered'], surface, v => setSurface(v as PadelSurface))}
       </div>
 
       {/* Golden point */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Scoring</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Scoring</div>
         {toggle(['Golden Point', 'Advantage'], goldenPoint ? 'Golden Point' : 'Advantage', v => setGoldenPoint(v === 'Golden Point'))}
       </div>
 
       {/* Venue */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Venue (optional)</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#7878a8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Venue (optional)</div>
         <input
           value={venue} onChange={e => setVenue(e.target.value)}
           placeholder="Club / Court name"
           style={{
-            width: '100%', background: '#161922', border: '1px solid #252a38',
-            borderRadius: 10, padding: '11px 14px', color: '#e4e8f2',
+            width: '100%', background: '#131428', border: '1px solid #252a38',
+            borderRadius: 10, padding: '11px 14px', color: '#eeeeff',
             fontSize: 15, fontFamily: '"DM Sans"', outline: 'none', boxSizing: 'border-box',
           }}
         />
@@ -208,8 +208,8 @@ function TournamentSetup({ onStart }: { onStart: (t: Tournament) => void }) {
         disabled={validPlayers.length < 4}
         style={{
           width: '100%', padding: '16px', borderRadius: 14, border: 'none',
-          background: validPlayers.length >= 4 ? '#bef264' : '#252a38',
-          color: validPlayers.length >= 4 ? '#08090d' : '#636b84',
+          background: validPlayers.length >= 4 ? '#a78bfa' : '#1e1e3c',
+          color: validPlayers.length >= 4 ? '#07070f' : '#7878a8',
           fontSize: 16, fontWeight: 800, cursor: validPlayers.length >= 4 ? 'pointer' : 'default',
         }}
       >
@@ -236,9 +236,9 @@ function ScoreEntry({
       onClick={() => { set((val + 1) % 8); if (navigator.vibrate) navigator.vibrate(6) }}
       style={{
         flex: 1, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: '#161922', border: '1px solid #252a38', borderRadius: 10,
+        background: '#131428', border: '1px solid #252a38', borderRadius: 10,
         fontSize: 26, fontFamily: '"IBM Plex Mono"', fontWeight: 700,
-        color: val > 0 ? '#bef264' : '#e4e8f2', cursor: 'pointer', userSelect: 'none',
+        color: val > 0 ? '#a78bfa' : '#eeeeff', cursor: 'pointer', userSelect: 'none',
       }}
     >
       {val}
@@ -255,35 +255,35 @@ function ScoreEntry({
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
         onClick={e => e.stopPropagation()}
         style={{
-          width: '100%', background: '#0f1117', borderRadius: '20px 20px 0 0',
+          width: '100%', background: '#0d0d1e', borderRadius: '20px 20px 0 0',
           padding: '20px 20px calc(env(safe-area-inset-bottom) + 20px)',
         }}
       >
-        <div style={{ fontSize: 14, fontWeight: 700, color: '#636b84', marginBottom: 16, textAlign: 'center' }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: '#7878a8', marginBottom: 16, textAlign: 'center' }}>
           Court {court.courtNum}
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 20 }}>
-          <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#636b84', fontWeight: 700 }}>
+          <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#7878a8', fontWeight: 700 }}>
             {court.teamA[0]} & {court.teamA[1]}
           </div>
-          <div style={{ fontSize: 14, color: '#636b84' }}>vs</div>
-          <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#636b84', fontWeight: 700 }}>
+          <div style={{ fontSize: 14, color: '#7878a8' }}>vs</div>
+          <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#7878a8', fontWeight: 700 }}>
             {court.teamB[0]} & {court.teamB[1]}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 24 }}>
           {numBtn(scoreA, setScoreA)}
-          <span style={{ color: '#636b84', fontSize: 20 }}>–</span>
+          <span style={{ color: '#7878a8', fontSize: 20 }}>–</span>
           {numBtn(scoreB, setScoreB)}
         </div>
-        <div style={{ fontSize: 11, color: '#636b84', textAlign: 'center', marginBottom: 16 }}>
+        <div style={{ fontSize: 11, color: '#7878a8', textAlign: 'center', marginBottom: 16 }}>
           Tap numbers to cycle 0–7
         </div>
         <button
           onClick={() => onSave(scoreA, scoreB)}
           style={{
             width: '100%', padding: '14px', borderRadius: 12, border: 'none',
-            background: '#bef264', color: '#08090d', fontSize: 15, fontWeight: 800, cursor: 'pointer',
+            background: '#a78bfa', color: '#07070f', fontSize: 15, fontWeight: 800, cursor: 'pointer',
           }}
         >
           Save Score
@@ -333,10 +333,10 @@ function TournamentDetail({
       {/* Header */}
       <div style={{ padding: '12px 16px', borderBottom: '1px solid #252a38', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: '#e4e8f2' }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#eeeeff' }}>
             {tournament.name}
           </div>
-          <div style={{ fontSize: 11, color: '#636b84', marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: '#7878a8', marginTop: 2 }}>
             {tournament.format.charAt(0).toUpperCase() + tournament.format.slice(1)} · {tournament.players.length} players
             {tournament.status === 'complete' && ' · 🏆 Complete'}
           </div>
@@ -345,7 +345,7 @@ function TournamentDetail({
           onClick={handleShare}
           style={{
             padding: '8px 14px', borderRadius: 9, border: '1px solid #252a38',
-            background: '#161922', color: '#e4e8f2', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+            background: '#131428', color: '#eeeeff', cursor: 'pointer', fontSize: 12, fontWeight: 600,
           }}
         >
           Share
@@ -358,7 +358,7 @@ function TournamentDetail({
           <button key={tabKey} onClick={() => setTab(tabKey)} style={{
             flex: 1, padding: '11px', background: 'none', border: 'none',
             borderBottom: tab === tabKey ? '2px solid #bef264' : '2px solid transparent',
-            color: tab === tabKey ? '#bef264' : '#636b84',
+            color: tab === tabKey ? '#a78bfa' : '#7878a8',
             fontSize: 13, fontWeight: 600, cursor: 'pointer', marginBottom: -1,
           }}>
             {tabKey === 'schedule' ? t('schedule') : t('leaderboard')}
@@ -371,7 +371,7 @@ function TournamentDetail({
         {tab === 'schedule' && tournament.rounds.map(round => (
           <div key={round.roundNum} style={{ marginBottom: 20 }}>
             <div style={{
-              fontSize: 11, fontWeight: 700, color: round.completed ? '#34d399' : '#636b84',
+              fontSize: 11, fontWeight: 700, color: round.completed ? '#34d399' : '#7878a8',
               textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10,
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
@@ -383,19 +383,19 @@ function TournamentDetail({
                 key={court.courtNum}
                 onClick={() => !court.completed && setEditing({ roundNum: round.roundNum, courtNum: court.courtNum })}
                 style={{
-                  background: '#0f1117', border: `1px solid ${court.completed ? '#252a38' : '#1e3a2e'}`,
+                  background: '#0d0d1e', border: `1px solid ${court.completed ? '#1e1e3c' : '#1e3a2e'}`,
                   borderRadius: 12, padding: '12px 14px', marginBottom: 8,
                   cursor: court.completed ? 'default' : 'pointer',
                 }}
               >
-                <div style={{ fontSize: 11, color: '#636b84', marginBottom: 8 }}>Court {court.courtNum}</div>
+                <div style={{ fontSize: 11, color: '#7878a8', marginBottom: 8 }}>Court {court.courtNum}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#e4e8f2' }}>{court.teamA[0]}</div>
-                    <div style={{ fontSize: 12, color: '#636b84' }}>{court.teamA[1]}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#eeeeff' }}>{court.teamA[0]}</div>
+                    <div style={{ fontSize: 12, color: '#7878a8' }}>{court.teamA[1]}</div>
                   </div>
                   {court.completed ? (
-                    <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 18, fontWeight: 700, color: '#bef264' }}>
+                    <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 18, fontWeight: 700, color: '#a78bfa' }}>
                       {court.scoreA} – {court.scoreB}
                     </div>
                   ) : (
@@ -407,8 +407,8 @@ function TournamentDetail({
                     </div>
                   )}
                   <div style={{ flex: 1, textAlign: 'right' }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#e4e8f2' }}>{court.teamB[0]}</div>
-                    <div style={{ fontSize: 12, color: '#636b84' }}>{court.teamB[1]}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#eeeeff' }}>{court.teamB[0]}</div>
+                    <div style={{ fontSize: 12, color: '#7878a8' }}>{court.teamB[1]}</div>
                   </div>
                 </div>
               </div>
@@ -420,7 +420,7 @@ function TournamentDetail({
           <div>
             {tournament.status === 'complete' && (
               <div style={{
-                background: 'linear-gradient(135deg, rgba(251,191,36,0.1), rgba(190,242,100,0.05))',
+                background: 'linear-gradient(135deg, rgba(251,191,36,0.1), rgba(167,139,250,0.05))',
                 border: '1px solid rgba(251,191,36,0.25)',
                 borderRadius: 14, padding: 16, marginBottom: 16, textAlign: 'center',
               }}>
@@ -428,25 +428,25 @@ function TournamentDetail({
                 <div style={{ fontSize: 18, fontWeight: 800, color: '#fbbf24' }}>
                   {rankings[0]?.player}
                 </div>
-                <div style={{ fontSize: 13, color: '#636b84', marginTop: 4 }}>
+                <div style={{ fontSize: 13, color: '#7878a8', marginTop: 4 }}>
                   {rankings[0]?.score} pts · Tournament Winner
                 </div>
               </div>
             )}
             {rankings.map((r, i) => (
               <div key={r.player} style={{
-                background: '#0f1117', border: '1px solid #252a38', borderRadius: 12,
+                background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 12,
                 padding: '12px 14px', marginBottom: 8,
                 display: 'flex', alignItems: 'center', gap: 12,
               }}>
                 <span style={{ fontSize: i < 3 ? 20 : 14, width: 28, textAlign: 'center' }}>
                   {i < 3 ? medals[i] : `#${r.rank}`}
                 </span>
-                <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: '#e4e8f2' }}>{r.player}</span>
-                <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 18, fontWeight: 700, color: '#bef264' }}>
+                <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: '#eeeeff' }}>{r.player}</span>
+                <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 18, fontWeight: 700, color: '#a78bfa' }}>
                   {r.score}
                 </span>
-                <span style={{ fontSize: 11, color: '#636b84' }}>pts</span>
+                <span style={{ fontSize: 11, color: '#7878a8' }}>pts</span>
               </div>
             ))}
           </div>
@@ -484,12 +484,12 @@ function TournamentList({ onSelect, onNew }: {
   return (
     <div style={{ padding: '16px 16px 100px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 900, color: '#e4e8f2', margin: 0 }}>Tournaments</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 900, color: '#eeeeff', margin: 0 }}>Tournaments</h2>
         <button
           onClick={onNew}
           style={{
             padding: '9px 16px', borderRadius: 10, border: 'none',
-            background: '#bef264', color: '#08090d', fontSize: 13, fontWeight: 800, cursor: 'pointer',
+            background: '#a78bfa', color: '#07070f', fontSize: 13, fontWeight: 800, cursor: 'pointer',
           }}
         >
           + {t('newTournament')}
@@ -497,9 +497,9 @@ function TournamentList({ onSelect, onNew }: {
       </div>
 
       {tournaments.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: '#636b84' }}>
+        <div style={{ textAlign: 'center', padding: '60px 0', color: '#7878a8' }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🏆</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#949cb4', marginBottom: 8 }}>No tournaments yet</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#7878a8', marginBottom: 8 }}>No tournaments yet</div>
           <div style={{ fontSize: 13 }}>Start an Americano or Mexicano!</div>
         </div>
       ) : (
@@ -510,14 +510,14 @@ function TournamentList({ onSelect, onNew }: {
               key={tour.id}
               onClick={() => onSelect(tour)}
               style={{
-                background: '#0f1117', border: '1px solid #252a38', borderRadius: 14,
+                background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14,
                 padding: '14px 16px', marginBottom: 10, cursor: 'pointer',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: '#e4e8f2' }}>{tour.name}</div>
-                  <div style={{ fontSize: 11, color: '#636b84', marginTop: 2 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: '#eeeeff' }}>{tour.name}</div>
+                  <div style={{ fontSize: 11, color: '#7878a8', marginTop: 2 }}>
                     {tour.format} · {tour.players.length} players · {tour.rounds.length} rounds
                   </div>
                 </div>
@@ -531,7 +531,7 @@ function TournamentList({ onSelect, onNew }: {
                 </div>
               </div>
               {rankings[0] && (
-                <div style={{ fontSize: 12, color: '#636b84' }}>
+                <div style={{ fontSize: 12, color: '#7878a8' }}>
                   🥇 {rankings[0].player}: {rankings[0].score} pts
                 </div>
               )}
@@ -573,7 +573,7 @@ export function TournamentPage() {
           <button
             onClick={() => setView('list')}
             style={{
-              background: 'none', border: 'none', color: '#636b84',
+              background: 'none', border: 'none', color: '#7878a8',
               cursor: 'pointer', fontSize: 14, padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6,
             }}
           >

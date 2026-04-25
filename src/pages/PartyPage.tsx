@@ -1,64 +1,57 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../contexts/AppContext'
 import { getRandomChallenge } from '../lib/party'
 import type { Challenge, DrinkRule } from '../lib/party'
+import { C, F } from '../lib/design'
 
-const PARTY_PINK = '#f472b6'
-const PARTY_PURPLE = '#a855f7'
-const PARTY_GRADIENT = `linear-gradient(135deg, ${PARTY_PINK}, ${PARTY_PURPLE})`
-
-// ─── Drink counter card ────────────────────────────────────────────────────────
+// ─── Drink counter ────────────────────────────────────────────────────────────
 
 function DrinkCounter() {
   const { drinkCounts, addDrinks, resetDrinks } = useApp()
   const entries = Object.entries(drinkCounts).sort((a, b) => b[1] - a[1])
 
-  if (entries.length === 0) {
-    return (
-      <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, padding: '16px', marginBottom: 16 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Drink Scoreboard</div>
-        <div style={{ fontSize: 13, color: '#636b84', textAlign: 'center', padding: '12px 0' }}>
-          Drink events will appear here during a match 🍺
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div style={{ background: '#0f1117', border: '1px solid #252a38', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
-      <div style={{ padding: '12px 14px', borderBottom: '1px solid #252a38', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Drink Scoreboard</div>
-        <button
-          onClick={resetDrinks}
-          style={{ fontSize: 10, color: PARTY_PINK, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}
-        >
-          Reset
-        </button>
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
+      <div style={{ padding: '12px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.1em' }}>🍺 Drink Scoreboard</div>
+        {entries.length > 0 && (
+          <button onClick={resetDrinks} style={{ fontSize: 11, color: C.party, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>
+            Reset
+          </button>
+        )}
       </div>
-      {entries.map(([player, sips], i) => (
+      {entries.length === 0 ? (
+        <div style={{ padding: '16px', textAlign: 'center', color: C.text3, fontSize: 13 }}>
+          Drink events appear here during a match
+        </div>
+      ) : entries.map(([player, sips], i) => (
         <div key={player} style={{
-          padding: '11px 14px', borderBottom: i < entries.length - 1 ? '1px solid #161922' : 'none',
-          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '12px 16px', borderBottom: i < entries.length - 1 ? `1px solid ${C.border}` : 'none',
+          display: 'flex', alignItems: 'center', gap: 12,
         }}>
           <div style={{
-            width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-            background: `${PARTY_PINK}18`, border: `1px solid ${PARTY_PINK}44`,
+            width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+            background: C.partyDim, border: `1px solid ${C.party}44`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 12, fontWeight: 900, color: C.party,
           }}>
-            <span style={{ fontSize: 11, fontWeight: 900, color: PARTY_PINK }}>{player[0]?.toUpperCase()}</span>
+            {player[0]?.toUpperCase()}
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#e4e8f2' }}>{player}</div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: C.text }}>{player}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
               onClick={() => addDrinks(player, 1)}
-              style={{ width: 26, height: 26, borderRadius: '50%', border: `1px solid ${PARTY_PINK}44`, background: 'none', color: PARTY_PINK, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{
+                width: 28, height: 28, borderRadius: '50%',
+                border: `1px solid ${C.party}44`, background: 'none',
+                color: C.party, cursor: 'pointer', fontSize: 16,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
             >+</button>
-            <div style={{ textAlign: 'center', minWidth: 40 }}>
-              <div style={{ fontFamily: '"IBM Plex Mono"', fontSize: 18, fontWeight: 800, color: PARTY_PINK }}>{sips}</div>
-              <div style={{ fontSize: 9, color: '#636b84' }}>sips</div>
+            <div style={{ textAlign: 'right', minWidth: 38 }}>
+              <div style={{ fontFamily: F.mono, fontSize: 20, fontWeight: 800, color: C.party }}>{sips}</div>
+              <div style={{ fontSize: 9, color: C.text3 }}>sips</div>
             </div>
           </div>
         </div>
@@ -67,41 +60,37 @@ function DrinkCounter() {
   )
 }
 
-// ─── Rule card ─────────────────────────────────────────────────────────────────
+// ─── Rule card ────────────────────────────────────────────────────────────────
 
 function RuleCard({ rule, onChange }: { rule: DrinkRule; onChange: (r: DrinkRule) => void }) {
   return (
     <div style={{
-      background: rule.enabled ? `rgba(244,114,182,0.04)` : '#0f1117',
-      border: `1px solid ${rule.enabled ? `${PARTY_PINK}33` : '#252a38'}`,
-      borderRadius: 12, padding: '12px 14px',
-      transition: 'all 0.15s',
+      background: rule.enabled ? C.partyDim : C.surface,
+      border: `1px solid ${rule.enabled ? `${C.party}35` : C.border}`,
+      borderRadius: 14, padding: '13px 14px',
+      transition: 'all 0.2s',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        <span style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>{rule.emoji}</span>
+        <span style={{ fontSize: 20, flexShrink: 0, marginTop: 2 }}>{rule.emoji}</span>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: rule.enabled ? '#e4e8f2' : '#636b84', marginBottom: 2 }}>{rule.label}</div>
-          <div style={{ fontSize: 11, color: '#636b84', lineHeight: 1.4 }}>{rule.description}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: rule.enabled ? C.text : C.text2, marginBottom: 3 }}>{rule.label}</div>
+          <div style={{ fontSize: 11, color: C.text3, lineHeight: 1.45 }}>{rule.description}</div>
           {rule.enabled && !rule.isFinish && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
-              <span style={{ fontSize: 10, color: '#636b84' }}>Sips:</span>
+              <span style={{ fontSize: 10, color: C.text3 }}>Sips:</span>
               {[1, 2, 3].map(n => (
-                <button
-                  key={n}
-                  onClick={() => onChange({ ...rule, sips: n })}
-                  style={{
-                    width: 26, height: 26, borderRadius: 6, border: 'none', cursor: 'pointer',
-                    background: rule.sips === n ? PARTY_PINK : '#252a38',
-                    color: rule.sips === n ? '#08090d' : '#636b84',
-                    fontSize: 11, fontWeight: 800,
-                  }}
-                >{n}</button>
+                <button key={n} onClick={() => onChange({ ...rule, sips: n })} style={{
+                  width: 28, height: 28, borderRadius: 7, border: 'none', cursor: 'pointer',
+                  background: rule.sips === n ? C.party : C.elevated,
+                  color: rule.sips === n ? '#fff' : C.text3,
+                  fontSize: 12, fontWeight: 800,
+                }}>{n}</button>
               ))}
             </div>
           )}
           {rule.enabled && rule.isFinish && (
-            <div style={{ marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(244,114,182,0.1)', borderRadius: 4, padding: '2px 8px' }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: PARTY_PINK }}>FINISH DRINK</span>
+            <div style={{ marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4, background: C.partyDim, borderRadius: 5, padding: '2px 8px' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: C.party, letterSpacing: '0.05em' }}>FINISH DRINK</span>
             </div>
           )}
         </div>
@@ -109,16 +98,15 @@ function RuleCard({ rule, onChange }: { rule: DrinkRule; onChange: (r: DrinkRule
         <button
           onClick={() => onChange({ ...rule, enabled: !rule.enabled })}
           style={{
-            width: 42, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', flexShrink: 0,
-            background: rule.enabled ? PARTY_GRADIENT : '#252a38',
+            width: 44, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer', flexShrink: 0,
+            background: rule.enabled ? C.party : C.elevated,
             position: 'relative', transition: 'background 0.2s',
           }}
         >
           <div style={{
-            position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%',
-            background: '#fff',
-            left: rule.enabled ? 20 : 2,
-            transition: 'left 0.2s',
+            position: 'absolute', top: 3, width: 20, height: 20, borderRadius: '50%',
+            background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+            left: rule.enabled ? 21 : 3, transition: 'left 0.2s',
           }} />
         </button>
       </div>
@@ -126,7 +114,7 @@ function RuleCard({ rule, onChange }: { rule: DrinkRule; onChange: (r: DrinkRule
   )
 }
 
-// ─── Challenge spinner ─────────────────────────────────────────────────────────
+// ─── Challenge spinner ────────────────────────────────────────────────────────
 
 function ChallengeSpinner() {
   const [challenge, setChallenge] = useState<Challenge | null>(null)
@@ -145,38 +133,45 @@ function ChallengeSpinner() {
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Random Challenge</div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+        Random Challenge
+      </div>
       <button
         onClick={spin}
         style={{
-          width: '100%', padding: '16px', borderRadius: 14, border: 'none', cursor: spinning ? 'default' : 'pointer',
-          background: spinning ? '#161922' : PARTY_GRADIENT,
-          color: spinning ? '#636b84' : '#fff',
-          fontSize: 15, fontWeight: 800, fontFamily: '"DM Sans"',
-          boxShadow: spinning ? 'none' : `0 4px 20px ${PARTY_PINK}44`,
-          transition: 'all 0.2s', marginBottom: 10,
+          width: '100%', padding: '16px', borderRadius: 14, border: 'none',
+          cursor: spinning ? 'default' : 'pointer',
+          background: spinning
+            ? C.elevated
+            : `linear-gradient(135deg, ${C.accent}, ${C.party})`,
+          color: spinning ? C.text2 : '#fff',
+          fontSize: 15, fontWeight: 800, fontFamily: F.sans,
+          boxShadow: spinning ? 'none' : `0 4px 20px rgba(236,72,153,0.3)`,
+          transition: 'all 0.2s', marginBottom: challenge ? 10 : 0,
         }}
       >
         {spinning ? '🎲 Spinning…' : '🎲 Spin for a Challenge!'}
       </button>
 
       {challenge && !spinning && (
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(244,114,182,0.08), rgba(168,85,247,0.08))',
-          border: `1px solid ${PARTY_PINK}44`,
-          borderRadius: 14, padding: '16px',
-          animation: 'partySlideIn 0.3s ease-out',
-        }}>
-          <div style={{ fontSize: 28, textAlign: 'center', marginBottom: 8 }}>{challenge.emoji}</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#e4e8f2', textAlign: 'center', lineHeight: 1.5 }}>{challenge.text}</div>
-          <div style={{
-            marginTop: 10, textAlign: 'center',
-            background: '#161922', borderRadius: 6, padding: '3px 0',
-            display: 'inline-block', width: '100%',
-          }}>
-            <span style={{ fontSize: 9, fontWeight: 700, color: PARTY_PURPLE, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-              {challenge.category}
-            </span>
+        <div
+          className="fade-up"
+          style={{
+            background: `linear-gradient(135deg, ${C.accentDim}, ${C.partyDim})`,
+            border: `1px solid ${C.party}40`,
+            borderRadius: 14, padding: '18px 16px',
+          }}
+        >
+          <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 8 }}>{challenge.emoji}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.text, textAlign: 'center', lineHeight: 1.5 }}>
+            {challenge.text}
+          </div>
+          <div style={{ marginTop: 10, textAlign: 'center' }}>
+            <span style={{
+              fontSize: 9, fontWeight: 700, color: C.party,
+              textTransform: 'uppercase', letterSpacing: '0.08em',
+              background: C.elevated, borderRadius: 5, padding: '3px 8px',
+            }}>{challenge.category}</span>
           </div>
         </div>
       )}
@@ -184,51 +179,55 @@ function ChallengeSpinner() {
   )
 }
 
-// ─── Party mode toggle hero ────────────────────────────────────────────────────
+// ─── Party mode toggle ────────────────────────────────────────────────────────
 
-function PartyModeHero() {
+function PartyModeToggle() {
   const { partyMode, setPartyMode } = useApp()
 
   return (
     <div
-      onClick={() => { setPartyMode(!partyMode); if (navigator.vibrate) navigator.vibrate(partyMode ? 10 : [10, 50, 20]) }}
+      onClick={() => {
+        setPartyMode(!partyMode)
+        if (navigator.vibrate) navigator.vibrate(partyMode ? 10 : [10, 50, 20])
+      }}
       style={{
         background: partyMode
-          ? 'linear-gradient(135deg, rgba(244,114,182,0.12), rgba(168,85,247,0.08))'
-          : '#0f1117',
-        border: `2px solid ${partyMode ? PARTY_PINK : '#252a38'}`,
-        borderRadius: 18, padding: '20px', marginBottom: 16,
+          ? `linear-gradient(135deg, ${C.partyDim}, ${C.accentDim})`
+          : C.surface,
+        border: `2px solid ${partyMode ? C.party : C.border}`,
+        borderRadius: 18, padding: '18px 16px', marginBottom: 16,
         cursor: 'pointer', transition: 'all 0.25s',
-        boxShadow: partyMode ? `0 0 28px ${PARTY_PINK}22` : 'none',
+        boxShadow: partyMode ? `0 0 32px ${C.party}20` : 'none',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <div style={{
-          width: 56, height: 56, borderRadius: 16, flexShrink: 0,
-          background: partyMode ? PARTY_GRADIENT : '#161922',
-          border: partyMode ? 'none' : `1px solid #252a38`,
+          width: 54, height: 54, borderRadius: 15, flexShrink: 0,
+          background: partyMode ? `linear-gradient(135deg, ${C.accent}, ${C.party})` : C.elevated,
+          border: partyMode ? 'none' : `1px solid ${C.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 28, transition: 'all 0.25s',
-          boxShadow: partyMode ? `0 4px 16px ${PARTY_PINK}44` : 'none',
+          fontSize: 26, transition: 'all 0.25s',
+          boxShadow: partyMode ? `0 4px 20px ${C.party}40` : 'none',
         }}>🎉</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 17, fontWeight: 900, color: partyMode ? '#e4e8f2' : '#636b84', marginBottom: 3 }}>
+          <div style={{ fontSize: 17, fontWeight: 900, color: partyMode ? C.text : C.text2, marginBottom: 4 }}>
             Party Mode
           </div>
-          <div style={{ fontSize: 12, color: partyMode ? PARTY_PINK : '#636b84' }}>
-            {partyMode ? 'Active — drink rules fire during match' : 'Tap to activate drink rules'}
+          <div style={{ fontSize: 12, color: partyMode ? C.party : C.text3 }}>
+            {partyMode ? 'Active — drink rules fire during match' : 'Activate to enable drink rules'}
           </div>
         </div>
         {/* Toggle switch */}
         <div style={{
           width: 52, height: 28, borderRadius: 14, flexShrink: 0,
-          background: partyMode ? PARTY_GRADIENT : '#252a38',
-          position: 'relative', transition: 'background 0.2s',
+          background: partyMode ? C.party : C.elevated,
+          border: `1px solid ${partyMode ? C.party : C.border}`,
+          position: 'relative', transition: 'all 0.2s',
         }}>
           <div style={{
-            position: 'absolute', top: 3, width: 22, height: 22, borderRadius: '50%', background: '#fff',
+            position: 'absolute', top: 3, width: 22, height: 22, borderRadius: '50%',
+            background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
             left: partyMode ? 27 : 3, transition: 'left 0.2s',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
           }} />
         </div>
       </div>
@@ -236,15 +235,12 @@ function PartyModeHero() {
   )
 }
 
-// ─── Main page ─────────────────────────────────────────────────────────────────
+// ─── Party Page ───────────────────────────────────────────────────────────────
 
 export function PartyPage() {
   const navigate = useNavigate()
   const { partyMode, partyRules, setPartyRules } = useApp()
   const [showRules, setShowRules] = useState(true)
-
-  // Reset challenge when leaving
-  useEffect(() => {}, [])
 
   const updateRule = (updated: DrinkRule) => {
     setPartyRules(partyRules.map(r => r.id === updated.id ? updated : r))
@@ -253,48 +249,41 @@ export function PartyPage() {
   const activeCount = partyRules.filter(r => r.enabled).length
 
   return (
-    <div style={{ fontFamily: '"DM Sans"' }}>
-      <style>{`
-        @keyframes partySlideIn { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
-        @keyframes partyPulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
-      `}</style>
-
-      {/* Hero header */}
+    <div style={{ fontFamily: F.sans }}>
+      {/* ── Page header ───────────────────────────────────────────────────── */}
       <div style={{
-        padding: '20px 16px 0',
+        padding: '16px 16px 0',
         background: partyMode
-          ? 'linear-gradient(180deg, rgba(244,114,182,0.06) 0%, transparent 100%)'
+          ? `linear-gradient(180deg, ${C.partyDim} 0%, transparent 100%)`
           : 'none',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 22, fontWeight: 900, color: '#e4e8f2', marginBottom: 2 }}>
-              Party Mode 🎉
-            </div>
-            <div style={{ fontSize: 12, color: '#636b84' }}>
-              {partyMode ? (
-                <span style={{ color: PARTY_PINK, animation: 'partyPulse 2s infinite' }}>
-                  ● Active · {activeCount} rule{activeCount !== 1 ? 's' : ''} on
-                </span>
-              ) : 'Add drinking game rules to your padel match'}
-            </div>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 23, fontWeight: 900, color: C.text, marginBottom: 3, letterSpacing: '-0.3px' }}>
+            Party Mode 🎉
+          </div>
+          <div style={{ fontSize: 13, color: C.text2 }}>
+            {partyMode ? (
+              <span style={{ color: C.party }}>
+                ● Active · {activeCount} rule{activeCount !== 1 ? 's' : ''} enabled
+              </span>
+            ) : 'Add drink rules to your padel game'}
           </div>
         </div>
 
         {/* Age warning */}
         <div style={{
-          background: 'rgba(99,107,132,0.08)', border: '1px solid #252a38',
-          borderRadius: 10, padding: '8px 12px', marginBottom: 16,
+          background: C.surface, border: `1px solid ${C.border}`,
+          borderRadius: 10, padding: '9px 12px', marginBottom: 14,
           display: 'flex', gap: 8, alignItems: 'center',
         }}>
           <span style={{ fontSize: 14 }}>🔞</span>
-          <span style={{ fontSize: 11, color: '#636b84' }}>
+          <span style={{ fontSize: 11, color: C.text3 }}>
             18+ only. Play responsibly. Never drink and drive. Know your limits.
           </span>
         </div>
 
         {/* Party mode toggle */}
-        <PartyModeHero />
+        <PartyModeToggle />
 
         {/* Drink scoreboard */}
         <DrinkCounter />
@@ -311,10 +300,10 @@ export function PartyPage() {
               background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 10px',
             }}
           >
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-              Drink Rules ({activeCount}/{partyRules.length} active)
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              Drink Rules ({activeCount}/{partyRules.length} on)
             </div>
-            <span style={{ fontSize: 12, color: '#636b84' }}>{showRules ? '▲' : '▼'}</span>
+            <span style={{ fontSize: 12, color: C.text3 }}>{showRules ? '▲' : '▼'}</span>
           </button>
           {showRules && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -325,40 +314,40 @@ export function PartyPage() {
           )}
         </div>
 
-        {/* Match History link */}
+        {/* History link */}
         <div
           onClick={() => navigate('/history')}
           style={{
-            background: '#0f1117', border: '1px solid #252a38',
+            background: C.surface, border: `1px solid ${C.border}`,
             borderRadius: 14, padding: '14px 16px', marginBottom: 16,
             display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
           }}
         >
           <span style={{ fontSize: 22, flexShrink: 0 }}>📋</span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#e4e8f2' }}>Match History</div>
-            <div style={{ fontSize: 12, color: '#636b84' }}>View all your completed matches</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Match History</div>
+            <div style={{ fontSize: 12, color: C.text2 }}>View all your completed matches</div>
           </div>
-          <span style={{ fontSize: 18, color: '#636b84' }}>›</span>
+          <span style={{ fontSize: 16, color: C.text3 }}>›</span>
         </div>
 
-        {/* Party tips */}
+        {/* Safety tips */}
         <div style={{
-          background: 'rgba(99,107,132,0.05)', border: '1px solid #252a38',
+          background: C.surface, border: `1px solid ${C.border}`,
           borderRadius: 14, padding: '14px 16px', marginBottom: 96,
         }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#636b84', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>
-            Party Tips
+          <div style={{ fontSize: 10, fontWeight: 700, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>
+            Safety First
           </div>
           {[
             { emoji: '💧', tip: 'Alternate with water to stay hydrated on court' },
             { emoji: '🍕', tip: 'Eat something before playing — padel is a real workout' },
-            { emoji: '🚗', tip: 'Organise safe transport home before the match starts' },
-            { emoji: '🛑', tip: 'Anyone can call "water break" at any time — no questions asked' },
-          ].map(t => (
-            <div key={t.emoji} style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
-              <span style={{ fontSize: 16, flexShrink: 0 }}>{t.emoji}</span>
-              <span style={{ fontSize: 12, color: '#636b84', lineHeight: 1.5 }}>{t.tip}</span>
+            { emoji: '🚗', tip: 'Arrange safe transport home before the game starts' },
+            { emoji: '🛑', tip: 'Anyone can call a break at any time — no questions asked' },
+          ].map(item => (
+            <div key={item.emoji} style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+              <span style={{ fontSize: 15, flexShrink: 0 }}>{item.emoji}</span>
+              <span style={{ fontSize: 12, color: C.text2, lineHeight: 1.5 }}>{item.tip}</span>
             </div>
           ))}
         </div>
