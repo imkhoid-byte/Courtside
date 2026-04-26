@@ -513,6 +513,57 @@ function DrinkOverlay({ event, onDismiss }: { event: DrinkEvent; onDismiss: () =
   )
 }
 
+// ─── Voice command guide ─────────────────────────────────────────────────────
+
+function VoiceGuide({ lang }: { lang: string }) {
+  const isEs = lang === 'es'
+
+  const cmds = [
+    { cmd: isEs ? '"punto nuestro"' : '"point us"',   alt: isEs ? 'or "nuestro"' : 'or "point left"', desc: isEs ? 'Punto para mí / compañero' : 'Point for your team' },
+    { cmd: isEs ? '"punto suyo"'   : '"point them"',  alt: isEs ? 'or "suyo"'    : 'or "point right"', desc: isEs ? 'Punto para rivales'       : 'Point for opponents' },
+    { cmd: isEs ? '"as"'           : '"ace"',          alt: '',                                          desc: isEs ? 'Ace del sacador'           : 'Ace by the server' },
+    { cmd: isEs ? '"doble falta"'  : '"double fault"', alt: '',                                          desc: isEs ? 'Doble falta del sacador'   : 'Double fault by server' },
+    { cmd: isEs ? '"remate"'       : '"smash"',        alt: '',                                          desc: isEs ? 'Ganador remate'            : 'Smash winner' },
+    { cmd: '"bajada"',                                  alt: '',                                          desc: isEs ? 'Ganador bajada'            : 'Bajada winner' },
+    { cmd: isEs ? '"víbora"'       : '"vibora"',        alt: '',                                          desc: isEs ? 'Ganador víbora'            : 'Vibora winner' },
+    { cmd: isEs ? '"globo"'        : '"lob"',           alt: '',                                          desc: isEs ? 'Ganador globo'             : 'Lob winner' },
+    { cmd: isEs ? '"ganador"'      : '"winner"',        alt: '',                                          desc: isEs ? 'Ganador genérico'          : 'Generic winner' },
+    { cmd: isEs ? '"fallo"'        : '"error"',         alt: '',                                          desc: isEs ? 'Mi error (punto rivales)'  : 'My error → point to them' },
+    { cmd: isEs ? '"su error"'     : '"their error"',   alt: '',                                          desc: isEs ? 'Error rival (punto mío)'   : 'Their error → point to you' },
+    { cmd: isEs ? '"deshacer"'     : '"undo"',          alt: isEs ? 'or "atrás"'  : 'or "back"',         desc: isEs ? 'Deshacer último punto'     : 'Undo last point' },
+  ]
+
+  return (
+    <div style={{
+      background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.25)',
+      borderRadius: 12, padding: '12px 14px', marginBottom: 10,
+      animation: 'fade-up 0.2s ease-out',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+        <div className="pulse-live" style={{ width: 6, height: 6, borderRadius: '50%', background: '#dc2626' }} />
+        <span style={{ fontSize: 11, fontWeight: 800, color: '#dc2626', letterSpacing: '0.07em' }}>
+          {isEs ? 'ESCUCHANDO — comandos disponibles' : 'LISTENING — voice commands'}
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 8px' }}>
+        {cmds.map(c => (
+          <div key={c.cmd} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: '"IBM Plex Mono"', fontSize: 10, fontWeight: 700, color: '#eeeeff', background: 'rgba(255,255,255,0.07)', borderRadius: 4, padding: '1px 5px' }}>
+                {c.cmd}
+              </span>
+              {c.alt && (
+                <span style={{ fontSize: 9, color: '#7878a8' }}>{c.alt}</span>
+              )}
+            </div>
+            <span style={{ fontSize: 9, color: '#7878a8', lineHeight: 1.3 }}>{c.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Score Page ─────────────────────────────────────────────────────────
 
 export function ScorePage() {
@@ -893,6 +944,11 @@ export function ScorePage() {
           {t('scorekeeperMode')}
         </button>
       </div>
+
+      {/* Voice command cheat sheet */}
+      {isListening && (
+        <VoiceGuide lang={language} />
+      )}
 
       {/* Score Card */}
       <div style={{ background: '#0d0d1e', border: '1px solid #252a38', borderRadius: 14, overflow: 'hidden', position: 'relative', marginBottom: 12 }}>
