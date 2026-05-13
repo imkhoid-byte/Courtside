@@ -224,13 +224,13 @@ export function formatTournamentShare(tournament: Tournament): string {
   const medals = ['🥇', '🥈', '🥉']
 
   const lines = [
-    `🏆 SideCourt ${tournament.format.charAt(0).toUpperCase() + tournament.format.slice(1)} Tournament`,
+    `🏆 Padel Party ${tournament.format.charAt(0).toUpperCase() + tournament.format.slice(1)} Tournament`,
     tournament.name && `📋 ${tournament.name}`,
     `━━━━━━━━━━━━━━━━━`,
     ...top3.map((r, i) => `${medals[i]} ${r.player}: ${r.score} pts`),
     `━━━━━━━━━━━━━━━━━`,
     `${tournament.players.length} players · ${tournament.rounds.length} rounds`,
-    `sidecourt.app`,
+    `#PadelParty`,
   ].filter(Boolean)
 
   return lines.join('\n')

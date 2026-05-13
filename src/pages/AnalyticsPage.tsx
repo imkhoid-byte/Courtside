@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getCompletedMatches, getAllPlayerRatings } from '../lib/db'
 import type { Match, PlayerRating } from '../lib/types'
 import { useApp } from '../contexts/AppContext'
+import { C, F } from '../lib/design'
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer,
   PieChart, Pie, Cell, Tooltip,
@@ -445,13 +446,21 @@ export function AnalyticsPage() {
   const me = myName || 'You'
 
   return (
-    <div style={{ fontFamily: '"DM Sans"' }}>
+    <div style={{ fontFamily: F.sans }}>
+      {/* Page header */}
+      <div style={{ padding: '16px 16px 0' }}>
+        <div style={{ fontSize: 23, fontWeight: 900, color: C.text, marginBottom: 2, letterSpacing: '-0.3px' }}>Stats</div>
+        <div style={{ fontSize: 13, color: C.text2, marginBottom: 14 }}>
+          {me !== 'You' ? `Playing as ${me}` : 'Set your name in Profile to personalise stats'}
+        </div>
+      </div>
+
       {/* Sticky tab bar */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
         display: 'flex', overflowX: 'auto',
-        borderBottom: '1px solid #252a38',
-        background: 'rgba(8,9,13,0.97)', backdropFilter: 'blur(10px)',
+        borderBottom: `1px solid ${C.border}`,
+        background: `${C.bg}f8`, backdropFilter: 'blur(10px)',
         padding: '0 16px',
         scrollbarWidth: 'none',
       }}>
@@ -462,10 +471,10 @@ export function AnalyticsPage() {
             style={{
               flexShrink: 0, padding: '12px 14px',
               background: 'none', border: 'none',
-              borderBottom: activeTab === tab ? '2px solid #bef264' : '2px solid transparent',
+              borderBottom: activeTab === tab ? `2px solid ${C.accentLight}` : '2px solid transparent',
               cursor: 'pointer',
-              color: activeTab === tab ? '#a78bfa' : '#7878a8',
-              fontSize: 13, fontWeight: 600, fontFamily: '"DM Sans"',
+              color: activeTab === tab ? C.accentLight : C.text2,
+              fontSize: 13, fontWeight: 600, fontFamily: F.sans,
               transition: 'color 0.15s',
               whiteSpace: 'nowrap',
             }}
@@ -478,7 +487,7 @@ export function AnalyticsPage() {
       {/* Content */}
       <div style={{ padding: '16px 16px 96px' }}>
         {loading ? (
-          <div style={{ padding: 32, textAlign: 'center', color: '#7878a8' }}>Loading…</div>
+          <div style={{ padding: 32, textAlign: 'center', color: C.text2 }}>Loading…</div>
         ) : (
           <>
             {activeTab === 'Overview' && <OverviewTab matches={matches} myName={me} />}

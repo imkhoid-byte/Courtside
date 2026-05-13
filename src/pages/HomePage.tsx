@@ -166,6 +166,61 @@ function MatchCard({ match, myName }: { match: Match; myName: string }) {
   )
 }
 
+// ─── PWA Install Nudge ────────────────────────────────────────────────────────
+
+function InstallBanner() {
+  const [prompt, setPrompt] = useState<Event & { prompt?: () => Promise<void> } | null>(null)
+  const [dismissed, setDismissed] = useState(() => localStorage.getItem('pwa-banner-dismissed') === '1')
+
+  useEffect(() => {
+    const handler = (e: Event) => { e.preventDefault(); setPrompt(e as Event & { prompt: () => Promise<void> }) }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  if (!prompt || dismissed) return null
+
+  const install = async () => {
+    await (prompt as { prompt: () => Promise<void> }).prompt()
+    setPrompt(null)
+  }
+
+  const dismiss = () => {
+    localStorage.setItem('pwa-banner-dismissed', '1')
+    setDismissed(true)
+  }
+
+  return (
+    <div style={{
+      background: C.accentDim, border: `1px solid ${C.accent}40`,
+      borderRadius: 14, padding: '12px 14px',
+      display: 'flex', alignItems: 'center', gap: 10,
+    }}>
+      <div style={{
+        width: 36, height: 36, borderRadius: 10, background: C.accent,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        fontSize: 18,
+      }}>📲</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Install Padel Party</div>
+        <div style={{ fontSize: 11, color: C.text2 }}>Add to home screen for the best experience</div>
+      </div>
+      <button
+        onClick={install}
+        style={{
+          padding: '7px 12px', borderRadius: 9, border: 'none', cursor: 'pointer',
+          background: C.accent, color: '#fff', fontSize: 12, fontWeight: 700,
+          flexShrink: 0,
+        }}
+      >Install</button>
+      <button
+        onClick={dismiss}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.text3, fontSize: 18, padding: '0 2px', flexShrink: 0 }}
+      >✕</button>
+    </div>
+  )
+}
+
 // ─── Home Page ────────────────────────────────────────────────────────────────
 
 export function HomePage() {
@@ -255,6 +310,9 @@ export function HomePage() {
           </div>
         )}
       </div>
+
+      {/* ── Install nudge ────────────────────────────────────────────────── */}
+      <InstallBanner />
 
       {/* ── Live banner ───────────────────────────────────────────────────── */}
       <LiveBanner />

@@ -27,7 +27,7 @@ function MatchCard({
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation()
     const scoreLine = setScores.join(', ')
-    const text = `${isWin ? '🏆 Win' : '❌ Loss'} — ${myName} & ${myPartner} vs ${opp1} & ${opp2}\n${scoreLine} · ${date}${match.venue ? ` · ${match.venue}` : ''}\n#SideCourt #Padel`
+    const text = `${isWin ? '🏆 Win' : '❌ Loss'} — ${myName} & ${myPartner} vs ${opp1} & ${opp2}\n${scoreLine} · ${date}${match.venue ? ` · ${match.venue}` : ''}\n#PadelParty`
     if (navigator.share) navigator.share({ text }).catch(() => {})
     else navigator.clipboard?.writeText(text)
   }
@@ -214,7 +214,7 @@ export function HistoryPage() {
           {(['matches', 'tournaments'] as const).map(tabKey => (
             <button key={tabKey} onClick={() => setTab(tabKey)} style={{
               flex: 1, padding: '12px', background: 'none', border: 'none',
-              borderBottom: tab === tabKey ? '2px solid #bef264' : '2px solid transparent',
+              borderBottom: tab === tabKey ? '2px solid #a78bfa' : '2px solid transparent',
               color: tab === tabKey ? '#a78bfa' : '#7878a8',
               fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}>

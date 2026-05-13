@@ -289,7 +289,7 @@ function ScoreZone({ team, onClick }: { team: TeamPlayer; onClick: (e: React.Mou
       {/* Team name + serve indicator */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
         {teamServing && (
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 6px #bef264', flexShrink: 0 }} className="pulse-live" />
+          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 6px #a78bfa', flexShrink: 0 }} className="pulse-live" />
         )}
         <span style={{ fontSize: 11, fontWeight: 800, color, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
           TEAM {team}

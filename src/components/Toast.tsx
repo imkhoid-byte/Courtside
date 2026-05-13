@@ -27,10 +27,10 @@ export function ToastContainer() {
           className="toast-in"
           style={{
             background: '#0f1117',
-            border: '1px solid #bef264',
+            border: '1px solid #a78bfa',
             borderRadius: 10,
             padding: '10px 16px',
-            color: '#bef264',
+            color: '#a78bfa',
             fontFamily: '"DM Sans"',
             fontWeight: 600,
             fontSize: 14,

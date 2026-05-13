@@ -106,7 +106,7 @@ function CourtDiagram() {
       {/* Court background */}
       <rect x="10" y="10" width="200" height="120" rx="4" fill="#0d1a10" stroke="#2a4a2e" strokeWidth="1.5" />
       {/* Net */}
-      <line x1="10" y1="70" x2="210" y2="70" stroke="#bef264" strokeWidth="1.5" strokeDasharray="4 2" />
+      <line x1="10" y1="70" x2="210" y2="70" stroke="#a78bfa" strokeWidth="1.5" strokeDasharray="4 2" />
       {/* Service boxes */}
       <line x1="110" y1="10" x2="110" y2="70" stroke="#2a4a2e" strokeWidth="1" />
       <line x1="110" y1="70" x2="110" y2="130" stroke="#2a4a2e" strokeWidth="1" />
@@ -118,7 +118,7 @@ function CourtDiagram() {
       <rect x="10" y="10" width="4" height="120" rx="2" fill="#38bdf8" opacity="0.4" />
       <rect x="206" y="10" width="4" height="120" rx="2" fill="#38bdf8" opacity="0.4" />
       {/* Labels */}
-      <text x="110" y="68" textAnchor="middle" fill="#bef264" fontSize="7" fontWeight="700">NET</text>
+      <text x="110" y="68" textAnchor="middle" fill="#a78bfa" fontSize="7" fontWeight="700">NET</text>
       <text x="40" y="26" textAnchor="middle" fill="#38bdf8" fontSize="6">Glass Wall</text>
       <text x="60" y="55" textAnchor="middle" fill="#949cb4" fontSize="6">Service Box</text>
       <text x="160" y="55" textAnchor="middle" fill="#949cb4" fontSize="6">Service Box</text>
@@ -957,7 +957,7 @@ export function RulesPage() {
             onClick={() => setTab(t)}
             style={{
               flex: 1, padding: '13px 4px', background: 'none', border: 'none',
-              borderBottom: tab === t ? '2px solid #bef264' : '2px solid transparent',
+              borderBottom: tab === t ? '2px solid #a78bfa' : '2px solid transparent',
               color: tab === t ? '#a78bfa' : '#7878a8',
               fontSize: 13, fontWeight: 700, cursor: 'pointer',
               transition: 'color 0.15s',
